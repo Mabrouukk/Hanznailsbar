@@ -12,9 +12,9 @@ const WHY_US = [
 ];
 
 const SERVICES_PREVIEW = [
-  { icon: '💎', name: 'Hardgel & Extensions', desc: 'Hardgel, Polygel, SoftGel extensions and refills', price: 'From 500 EGP' },
-  { icon: '✨', name: 'Gel Polish', desc: 'Long-lasting gel polish, treatments and nail art', price: 'From 100 EGP' },
-  { icon: '🦶', name: 'Pedicure', desc: 'Classic and VIP pedicure experiences', price: 'From 250 EGP' },
+  { icon: '', name: 'Hardgel & Extensions', desc: 'Hardgel, Polygel, SoftGel extensions and refills', price: 'From 500 EGP' },
+  { icon: '', name: 'Gel Polish', desc: 'Long-lasting gel polish, treatments and nail art', price: 'From 100 EGP' },
+  { icon: '', name: 'Pedicure', desc: 'Classic and VIP pedicure experiences', price: 'From 250 EGP' },
 ];
 export default function Home() {
   const sectionsRef = useRef([]);
