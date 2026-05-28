@@ -1,0 +1,98 @@
+.booking-layout {
+  display: grid; grid-template-columns: 1fr 320px; gap: 32px; align-items: start;
+}
+.booking-form-wrap { min-width: 0; }
+.booking-steps {
+  display: flex; gap: 0; margin-bottom: 40px; position: relative;
+}
+.booking-steps::before {
+  content: ''; position: absolute; top: 20px; left: 20px; right: 20px;
+  height: 1px; background: var(--dark-4); z-index: 0;
+}
+.booking-step {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  flex: 1; position: relative; z-index: 1;
+}
+.step-num {
+  width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 600; border: 2px solid var(--dark-4);
+  background: var(--dark-2); color: var(--gray); transition: all 0.3s;
+}
+.booking-step.active .step-num {
+  border-color: var(--gold); background: var(--gold); color: var(--black);
+}
+.booking-step.done .step-num {
+  border-color: #28a745; background: #28a745; color: white;
+}
+.booking-step span { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--gray); }
+.booking-step.active span { color: var(--gold); }
+
+.booking-step-content h2 {
+  font-family: var(--font-serif); font-size: 28px;
+  margin-bottom: 28px; color: var(--white);
+}
+
+.selected-service-info {
+  background: rgba(212,175,55,0.08); border: 1px solid rgba(212,175,55,0.2);
+  border-radius: 12px; padding: 20px; margin-top: 8px;
+}
+.selected-service-info h4 { color: var(--gold); font-family: var(--font-serif); font-size: 20px; margin-bottom: 8px; }
+.selected-service-info p { color: var(--gray); font-size: 14px; margin-bottom: 12px; }
+.service-info-meta { display: flex; justify-content: space-between; font-size: 13px; color: var(--gray-light); }
+
+.time-slots { display: flex; flex-wrap: wrap; gap: 8px; }
+.time-slot {
+  padding: 8px 14px; border: 1px solid var(--dark-4); border-radius: 8px;
+  background: var(--dark-3); color: var(--gray-light); cursor: pointer;
+  font-size: 13px; font-family: var(--font-sans); transition: all 0.2s;
+}
+.time-slot:hover { border-color: var(--gold); color: var(--gold); }
+.time-slot.selected { background: var(--gold); border-color: var(--gold); color: var(--black); font-weight: 500; }
+
+.booking-summary { background: var(--dark-3); border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+.summary-row {
+  display: flex; justify-content: space-between; padding: 10px 0;
+  border-bottom: 1px solid var(--dark-4); font-size: 14px;
+}
+.summary-row span { color: var(--gray); }
+.summary-row strong { color: var(--white); }
+.summary-row.text-gold strong { color: var(--gold); }
+.summary-total { border-bottom: none !important; padding-top: 16px !important; }
+.summary-total span { color: var(--white) !important; font-weight: 600; }
+.summary-total strong { color: var(--gold) !important; font-size: 20px; }
+
+.discount-codes-available { margin-bottom: 16px; }
+.discount-codes-available p { font-size: 13px; color: var(--gray); margin-bottom: 10px; }
+.available-code {
+  display: inline-block; padding: 6px 14px; margin: 4px;
+  background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.3);
+  color: var(--gold); border-radius: 20px; font-size: 12px; cursor: pointer;
+  font-family: var(--font-sans); transition: all 0.2s;
+}
+.available-code:hover { background: rgba(212,175,55,0.2); }
+
+.discount-input-row { display: flex; gap: 12px; align-items: flex-end; }
+.apply-btn { white-space: nowrap; height: 44px; margin-bottom: 0; }
+.discount-success { color: #28a745; font-size: 13px; margin-top: 8px; }
+
+/* Sidebar */
+.booking-sidebar { display: flex; flex-direction: column; gap: 16px; }
+.sidebar-card h4 {
+  font-family: var(--font-serif); font-size: 18px; color: var(--gold);
+  margin-bottom: 16px;
+}
+.sidebar-card ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.sidebar-card ul li { font-size: 13px; color: var(--gray-light); }
+.sidebar-card p { font-size: 13px; color: var(--gray); margin-bottom: 10px; }
+.sidebar-contact { display: block; color: var(--white); font-size: 14px; margin-bottom: 6px; transition: color 0.2s; }
+.sidebar-contact:hover { color: var(--gold); }
+
+@media (max-width: 900px) {
+  .booking-layout { grid-template-columns: 1fr; }
+  .booking-sidebar { order: -1; }
+}
+@media (max-width: 480px) {
+  .time-slots { gap: 6px; }
+  .time-slot { padding: 6px 10px; font-size: 12px; }
+}

@@ -1,0 +1,49 @@
+.auth-page {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden; padding: 100px 24px 40px;
+}
+.auth-bg {
+  position: absolute; inset: 0; background: var(--black);
+}
+.auth-orb {
+  position: absolute; top: -200px; right: -200px;
+  width: 600px; height: 600px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(212,175,55,0.06), transparent);
+  filter: blur(60px);
+}
+.auth-container { position: relative; z-index: 1; width: 100%; max-width: 460px; }
+.auth-card {
+  background: var(--dark-2); border: 1px solid rgba(212,175,55,0.15);
+  border-radius: 20px; padding: 48px 40px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.4);
+}
+.auth-logo { text-align: center; margin-bottom: 32px; }
+.auth-logo span { font-size: 48px; display: block; margin-bottom: 12px; }
+.auth-logo h1 {
+  font-family: var(--font-serif); font-size: 28px;
+  color: var(--gold); letter-spacing: 4px; margin-bottom: 6px;
+}
+.auth-logo p { color: var(--gray); font-size: 13px; letter-spacing: 1px; }
+
+.birthday-promo-hint {
+  background: rgba(212,175,55,0.08); border: 1px solid rgba(212,175,55,0.2);
+  border-radius: 8px; padding: 12px 16px; margin-bottom: 24px;
+  font-size: 13px; color: var(--gray-light); text-align: center;
+}
+.birthday-promo-hint strong { color: var(--gold); }
+
+.optional { color: var(--gold); font-size: 10px; letter-spacing: 0.5px; font-weight: 400; }
+
+.auth-submit {
+  width: 100%; justify-content: center; padding: 14px !important;
+  font-size: 14px !important; margin-top: 8px; letter-spacing: 2px !important;
+}
+.auth-link {
+  text-align: center; margin-top: 24px; font-size: 13px; color: var(--gray);
+}
+.auth-link a { color: var(--gold); transition: color 0.2s; }
+.auth-link a:hover { color: var(--gold-light); text-decoration: underline; }
+
+@media (max-width: 480px) {
+  .auth-card { padding: 32px 24px; }
+}
