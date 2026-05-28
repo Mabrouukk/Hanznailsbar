@@ -36,7 +36,6 @@ export default function Login() {
       <div className="auth-container">
         <div className="auth-card">
           <div className="auth-logo">
-            <span>💅</span>
             <h1>HANZ NAILS</h1>
             <p>Welcome back</p>
           </div>
