@@ -32,12 +32,6 @@ const services = [
       { name: "3D Design One Finger", price: 75, duration: "30 min" }
     ]
   },
-  {
-    category: "Packages & Combos",
-    icon: "🎀",
-    items: [
-    ]
-  }
 ];
 
 router.get('/', (req, res) => {
