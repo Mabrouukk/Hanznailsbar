@@ -14,7 +14,6 @@ router.post('/', auth, async (req, res) => {
     let discountPercent = 0;
     let finalPrice = originalPrice || 0;
 
-    // Validate discount code
     if (discountCode) {
       const discountEntry = user.discountCodes.find(
         d => d.code === discountCode && !d.used && new Date(d.expiresAt) > new Date()
@@ -22,7 +21,6 @@ router.post('/', auth, async (req, res) => {
       if (discountEntry) {
         discountPercent = discountEntry.discount;
         finalPrice = originalPrice * (1 - discountPercent / 100);
-        // Mark code as used
         discountEntry.used = true;
         await user.save();
       }
@@ -44,8 +42,10 @@ router.post('/', auth, async (req, res) => {
       finalPrice
     });
 
-    // Send confirmation email
-    await sendBookingConfirmation(user, booking);
+    // Send email in background - never blocks response
+    sendBookingConfirmation(user, booking).catch(err =>
+      console.error('Booking confirmation email error:', err)
+    );
 
     res.status(201).json({
       message: 'Booking confirmed! See you soon 💅',
