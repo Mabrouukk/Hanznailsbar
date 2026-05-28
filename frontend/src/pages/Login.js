@@ -13,18 +13,20 @@ export default function Login() {
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const data = await login(form.email, form.password);
-      toast.success(`Welcome back, ${data.user.name}! 💅`);
+  e.preventDefault();
+  setLoading(true);
+  try {
+    const data = await login(form.email, form.password);
+    toast.success(`Welcome back, ${data.user.name}! 💅`);
+    setTimeout(() => {
       navigate(data.user.role === 'admin' ? '/admin' : '/dashboard');
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Login failed');
-    } finally {
-      setLoading(false);
-    }
-  };
+    }, 500);
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Login failed');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="auth-page">

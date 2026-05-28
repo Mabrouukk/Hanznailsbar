@@ -17,8 +17,8 @@ export default function Register() {
     setLoading(true);
     try {
       await register(form);
-      toast.success('Welcome to Hanz Nails! 🎉');
-      navigate('/dashboard');
+ toast.success('Welcome to Hanz Nails! 🎉');
+setTimeout(() => navigate('/dashboard'), 500);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Registration failed');
     } finally {

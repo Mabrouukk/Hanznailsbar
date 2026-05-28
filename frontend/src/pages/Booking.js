@@ -80,7 +80,7 @@ export default function Booking() {
         finalPrice
       });
       toast.success('🎉 Booking confirmed! Check your email.');
-      navigate('/dashboard');
+setTimeout(() => navigate('/dashboard'), 500);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Booking failed');
     } finally {
