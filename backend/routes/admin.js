@@ -32,7 +32,7 @@ router.get('/bookings', async (req, res) => {
   }
 });
 
-// @PUT /api/admin/bookings/:id/status - Update booking status
+// @PUT /api/admin/bookings/:id/status - Update booking status + send email
 router.put('/bookings/:id/status', async (req, res) => {
   try {
     const { status } = req.body;
@@ -40,8 +40,18 @@ router.put('/bookings/:id/status', async (req, res) => {
       req.params.id,
       { status },
       { new: true }
-    );
+    ).populate('user', 'name email phone');
+
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+    // Send email when confirmed or cancelled
+    if (status === 'confirmed' || status === 'cancelled') {
+      const { sendBookingStatusEmail } = require('../utils/emailService');
+      sendBookingStatusEmail(booking).catch(err =>
+        console.error('Status email error:', err)
+      );
+    }
+
     res.json({ message: 'Status updated', booking });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
