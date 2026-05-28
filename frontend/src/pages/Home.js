@@ -168,7 +168,7 @@ export default function Home() {
                 <a href="https://wa.me/201020564047" target="_blank" rel="noreferrer" className="btn btn-dark">💬 WhatsApp</a>
               </div>
               <a
-                href="https://maps.google.com/?q=Hanz+Nails+Salon,+19+Ali+Amer,+Nasr+City,+Cairo"
+                href="https://maps.app.goo.gl/NNRYdS7a87aFaNta9?g_st=ic"
                 target="_blank" rel="noreferrer"
                 className="btn btn-outline map-link"
               >
