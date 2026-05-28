@@ -30,10 +30,10 @@ router.post('/register', async (req, res) => {
     });
 
     // Send admin notification
-    await sendAdminNotification(user);
+    sendAdminNotification(user).catch(err => console.error('Admin notification error:', err));
 
     // Send welcome email
-    await sendWelcomeEmail(user);
+   sendWelcomeEmail(user).catch(err => console.error('Welcome email error:', err));
 
     const token = generateToken(user._id);
 
