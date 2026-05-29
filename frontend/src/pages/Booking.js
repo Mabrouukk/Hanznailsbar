@@ -23,17 +23,19 @@ export default function Booking() {
   const [loading, setLoading] = useState(false);
   const [bookedSlots, setBookedSlots] = useState([]);
   const [bookingMode, setBookingMode] = useState(null);
-  useEffect(() => {
-  if (user) setBookingMode('user');
-  }, [user]);
-  const [form, setForm] = useState({
-    serviceCategory: '', service: '', date: '', time: '',
-    notes: '', discountCode: '', originalPrice: 0,
-    guestName: '', guestEmail: '', guestPhone: ''
-  });
+  const [selectedServices, setSelectedServices] = useState([]);
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
+  const [notes, setNotes] = useState('');
+  const [discountCode, setDiscountCode] = useState('');
   const [discount, setDiscount] = useState(null);
   const [discountLoading, setDiscountLoading] = useState(false);
   const [activeCodes, setActiveCodes] = useState([]);
+  const [guestInfo, setGuestInfo] = useState({ name: '', email: '', phone: '' });
+
+  useEffect(() => {
+    if (user) setBookingMode('user');
+  }, [user]);
 
   useEffect(() => {
     axios.get(`${API}/services`).then(r => setServices(r.data));
@@ -43,32 +45,30 @@ export default function Booking() {
   }, [user]);
 
   useEffect(() => {
-    if (form.date) {
-      axios.get(`${API}/bookings/slots?date=${form.date}`)
+    if (date) {
+      axios.get(`${API}/bookings/slots?date=${date}`)
         .then(r => setBookedSlots(r.data))
         .catch(() => setBookedSlots([]));
     }
-  }, [form.date]);
+  }, [date]);
 
-  const selectedCategory = services.find(c => c.category === form.serviceCategory);
-  const selectedService = selectedCategory?.items.find(i => i.name === form.service);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-    if (name === 'serviceCategory') setForm(prev => ({ ...prev, serviceCategory: value, service: '', originalPrice: 0 }));
-    if (name === 'service') {
-      const cat = services.find(c => c.category === form.serviceCategory);
-      const svc = cat?.items.find(i => i.name === value);
-      setForm(prev => ({ ...prev, service: value, originalPrice: svc?.price || 0 }));
+  const toggleService = (item, categoryName) => {
+    const exists = selectedServices.find(s => s.name === item.name);
+    if (exists) {
+      setSelectedServices(prev => prev.filter(s => s.name !== item.name));
+    } else {
+      setSelectedServices(prev => [...prev, { ...item, category: categoryName }]);
     }
   };
 
+  const totalPrice = selectedServices.reduce((sum, s) => sum + s.price, 0);
+  const finalPrice = discount ? totalPrice * (1 - discount.discount / 100) : totalPrice;
+
   const applyDiscount = async () => {
-    if (!form.discountCode) return;
+    if (!discountCode) return;
     setDiscountLoading(true);
     try {
-      const { data } = await axios.post(`${API}/discounts/validate`, { code: form.discountCode });
+      const { data } = await axios.post(`${API}/discounts/validate`, { code: discountCode });
       setDiscount(data);
       toast.success(data.message);
     } catch (err) {
@@ -79,36 +79,35 @@ export default function Booking() {
     }
   };
 
-  const finalPrice = discount
-    ? form.originalPrice * (1 - discount.discount / 100)
-    : form.originalPrice;
-
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      const serviceNames = selectedServices.map(s => s.name).join(', ');
+      const categoryNames = [...new Set(selectedServices.map(s => s.category))].join(', ');
+
       if (bookingMode === 'guest') {
-        if (!form.guestName || !form.guestEmail || !form.guestPhone) {
-          toast.error('Please fill in your name, email and phone');
-          setLoading(false);
-          return;
-        }
         await axios.post(`${API}/bookings/guest`, {
-          guestName: form.guestName,
-          guestEmail: form.guestEmail,
-          guestPhone: form.guestPhone,
-          service: form.service,
-          serviceCategory: form.serviceCategory,
-          date: form.date,
-          time: form.time,
-          notes: form.notes,
-          originalPrice: form.originalPrice,
-          finalPrice: form.originalPrice
+          guestName: guestInfo.name,
+          guestEmail: guestInfo.email,
+          guestPhone: guestInfo.phone,
+          service: serviceNames,
+          serviceCategory: categoryNames,
+          date, time, notes,
+          originalPrice: totalPrice,
+          finalPrice: totalPrice
         });
-        toast.success('🎉 Booking request sent! Check your email.');
+        toast.success('Booking request sent! Check your email.');
         setTimeout(() => navigate('/'), 1500);
       } else {
-        await axios.post(`${API}/bookings`, { ...form, finalPrice });
-        toast.success('🎉 Booking confirmed! Check your email.');
+        await axios.post(`${API}/bookings`, {
+          service: serviceNames,
+          serviceCategory: categoryNames,
+          date, time, notes,
+          discountCode,
+          originalPrice: totalPrice,
+          finalPrice
+        });
+        toast.success('Booking confirmed! Check your email.');
         setTimeout(() => navigate('/dashboard'), 1500);
       }
     } catch (err) {
@@ -122,7 +121,6 @@ export default function Booking() {
   tomorrow.setDate(tomorrow.getDate() + 1);
   const minDate = tomorrow.toISOString().split('T')[0];
 
-  // Mode selection screen
   if (!bookingMode) {
     return (
       <div className="booking-page">
@@ -170,7 +168,6 @@ export default function Booking() {
           <div className="gold-line" style={{margin:'16px auto 0'}}></div>
         </div>
       </div>
-
       <div className="section">
         <div className="container">
           {bookingMode === 'guest' && (
@@ -183,7 +180,7 @@ export default function Booking() {
           <div className="booking-layout">
             <div className="booking-form-wrap">
               <div className="booking-steps">
-                {['Service','Date & Time','Details','Confirm'].map((s,i) => (
+                {['Services','Date & Time', bookingMode === 'guest' ? 'Your Details' : 'Discount','Confirm'].map((s,i) => (
                   <div key={i} className={`booking-step ${step > i+1 ? 'done' : ''} ${step === i+1 ? 'active' : ''}`}>
                     <div className="step-num">{step > i+1 ? '✓' : i+1}</div>
                     <span>{s}</span>
@@ -191,109 +188,112 @@ export default function Booking() {
                 ))}
               </div>
 
-              {/* Step 1: Service */}
               {step === 1 && (
                 <div className="booking-step-content">
-                  <h2>Choose Your Service</h2>
-                  <div className="form-group">
-                    <label>Service Category</label>
-                    <select name="serviceCategory" value={form.serviceCategory} onChange={handleChange}>
-                      <option value="">-- Select Category --</option>
-                      {services.map((c,i) => <option key={i} value={c.category}>{c.icon} {c.category}</option>)}
-                    </select>
-                  </div>
-                  {selectedCategory && (
-                    <div className="form-group">
-                      <label>Select Service</label>
-                      <select name="service" value={form.service} onChange={handleChange}>
-                        <option value="">-- Select Service --</option>
-                        {selectedCategory.items.map((s,i) => (
-                          <option key={i} value={s.name}>{s.name} – {s.price} EGP ({s.duration})</option>
+                  <h2>Choose Your Services</h2>
+                  <p style={{color:'var(--gray)', fontSize:'13px', marginBottom:'24px'}}>Select one or more services</p>
+                  {selectedServices.length > 0 && (
+                    <div className="selected-services-bar">
+                      <strong style={{color:'var(--gold)'}}>Selected ({selectedServices.length}):</strong>
+                      <div style={{display:'flex', flexWrap:'wrap', gap:'8px', marginTop:'8px'}}>
+                        {selectedServices.map((s,i) => (
+                          <span key={i} className="selected-service-tag">
+                            {s.name} — {s.price} EGP
+                            <button onClick={() => toggleService(s, s.category)}>✕</button>
+                          </span>
                         ))}
-                      </select>
-                    </div>
-                  )}
-                  {selectedService && (
-                    <div className="selected-service-info">
-                      <h4>{selectedService.name}</h4>
-                      <p>{selectedService.description}</p>
-                      <div className="service-info-meta">
-                        <span>⏱ {selectedService.duration}</span>
-                        <span className="text-gold">{selectedService.price} EGP</span>
+                      </div>
+                      <div style={{marginTop:'12px', color:'var(--gold)', fontWeight:'600'}}>
+                        Total: {totalPrice} EGP
                       </div>
                     </div>
                   )}
-                  <button className="btn btn-gold" style={{width:'100%',marginTop:'24px'}} onClick={() => setStep(2)} disabled={!form.service}>Continue →</button>
+                  {services.map((cat, ci) => (
+                    <div key={ci} className="service-category-section">
+                      <h3 className="service-category-title">{cat.icon} {cat.category}</h3>
+                      <div className="services-select-grid">
+                        {cat.items.map((item, ii) => {
+                          const isSelected = selectedServices.find(s => s.name === item.name);
+                          return (
+                            <div key={ii} className={`service-select-card ${isSelected ? 'selected' : ''}`} onClick={() => toggleService(item, cat.category)}>
+                              <div className="service-select-name">{item.name}</div>
+                              <div className="service-select-meta">
+                                <span>{item.duration}</span>
+                                <span className="service-select-price">{item.price} EGP</span>
+                              </div>
+                              {isSelected && <div className="service-check">✓</div>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                  <button className="btn btn-gold" style={{width:'100%', marginTop:'24px'}} onClick={() => setStep(2)} disabled={selectedServices.length === 0}>
+                    Continue → ({selectedServices.length} service{selectedServices.length !== 1 ? 's' : ''} — {totalPrice} EGP)
+                  </button>
                 </div>
               )}
 
-              {/* Step 2: Date & Time */}
               {step === 2 && (
                 <div className="booking-step-content">
                   <h2>Choose Date & Time</h2>
                   <div className="form-group">
                     <label>Select Date</label>
-                    <input type="date" name="date" value={form.date} onChange={handleChange} min={minDate} />
+                    <input type="date" value={date} onChange={e => setDate(e.target.value)} min={minDate} />
                   </div>
-                  {form.date && (
+                  {date && (
                     <div className="form-group">
                       <label>Select Time Slot</label>
                       <div className="time-slots">
                         {ALL_TIME_SLOTS.map((t,i) => {
                           const isBooked = bookedSlots.includes(t);
                           return (
-                            <button
-                              key={i}
-                              className={`time-slot ${form.time === t ? 'selected' : ''} ${isBooked ? 'booked' : ''}`}
-                              onClick={() => !isBooked && setForm(prev => ({...prev, time: t}))}
-                              type="button"
-                              disabled={isBooked}
-                              title={isBooked ? 'Already booked' : ''}
-                            >{t}{isBooked ? ' ✗' : ''}</button>
+                            <button key={i} className={`time-slot ${time === t ? 'selected' : ''} ${isBooked ? 'booked' : ''}`} onClick={() => !isBooked && setTime(t)} type="button" disabled={isBooked}>
+                              {t}{isBooked ? ' ✗' : ''}
+                            </button>
                           );
                         })}
                       </div>
-                      <p style={{fontSize:'12px', color:'var(--gray)', marginTop:'8px'}}>✗ = slot already booked</p>
+                      <p style={{fontSize:'12px', color:'var(--gray)', marginTop:'8px'}}>✗ = already booked</p>
                     </div>
                   )}
                   <div className="form-group">
                     <label>Notes (optional)</label>
-                    <textarea name="notes" value={form.notes} onChange={handleChange} placeholder="Any special requests?" />
+                    <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Any special requests?" />
                   </div>
                   <div style={{display:'flex',gap:'12px'}}>
                     <button className="btn btn-dark" style={{flex:1}} onClick={() => setStep(1)}>← Back</button>
-                    <button className="btn btn-gold" style={{flex:2}} onClick={() => setStep(3)} disabled={!form.date || !form.time}>Continue →</button>
+                    <button className="btn btn-gold" style={{flex:2}} onClick={() => setStep(3)} disabled={!date || !time}>Continue →</button>
                   </div>
                 </div>
               )}
 
-              {/* Step 3: Guest Details or Discount */}
               {step === 3 && (
                 <div className="booking-step-content">
                   {bookingMode === 'guest' ? (
                     <>
                       <h2>Your Details</h2>
                       <div className="form-group">
-                        <label>Full Name <span style={{color:'red'}}>*</span></label>
-                        <input type="text" name="guestName" value={form.guestName} onChange={handleChange} placeholder="Your full name" required />
+                        <label>Full Name *</label>
+                        <input type="text" value={guestInfo.name} onChange={e => setGuestInfo(p => ({...p, name: e.target.value}))} placeholder="Your full name" />
                       </div>
                       <div className="form-group">
-                        <label>Email Address <span style={{color:'red'}}>*</span></label>
-                        <input type="email" name="guestEmail" value={form.guestEmail} onChange={handleChange} placeholder="your@email.com" required />
+                        <label>Email Address *</label>
+                        <input type="email" value={guestInfo.email} onChange={e => setGuestInfo(p => ({...p, email: e.target.value}))} placeholder="your@email.com" />
                       </div>
                       <div className="form-group">
-                        <label>Phone Number <span style={{color:'red'}}>*</span></label>
-                        <input type="tel" name="guestPhone" value={form.guestPhone} onChange={handleChange} placeholder="+20 10 XXXX XXXX" required />
+                        <label>Phone Number *</label>
+                        <input type="tel" value={guestInfo.phone} onChange={e => setGuestInfo(p => ({...p, phone: e.target.value}))} placeholder="+20 10 XXXX XXXX" />
                       </div>
                     </>
                   ) : (
                     <>
-                      <h2>Apply Discount</h2>
+                      <h2>Discount Code</h2>
                       {activeCodes.length > 0 && (
                         <div className="discount-codes-available">
-                          <p>🎉 Your active discount codes:</p>
+                          <p>Your active codes:</p>
                           {activeCodes.map((c,i) => (
-                            <button key={i} className="available-code" onClick={() => setForm(prev => ({...prev, discountCode: c.code}))}>
+                            <button key={i} className="available-code" onClick={() => setDiscountCode(c.code)}>
                               {c.code} ({c.discount}% OFF)
                             </button>
                           ))}
@@ -302,7 +302,7 @@ export default function Booking() {
                       <div className="discount-input-row">
                         <div className="form-group" style={{flex:1, marginBottom:0}}>
                           <label>Discount Code</label>
-                          <input type="text" name="discountCode" value={form.discountCode} onChange={handleChange} placeholder="Enter code" style={{textTransform:'uppercase'}} />
+                          <input type="text" value={discountCode} onChange={e => setDiscountCode(e.target.value.toUpperCase())} placeholder="Enter code" />
                         </div>
                         <button className="btn btn-outline apply-btn" onClick={applyDiscount} disabled={discountLoading}>
                           {discountLoading ? '...' : 'Apply'}
@@ -313,33 +313,33 @@ export default function Booking() {
                   )}
                   <div style={{display:'flex',gap:'12px',marginTop:'24px'}}>
                     <button className="btn btn-dark" style={{flex:1}} onClick={() => setStep(2)}>← Back</button>
-                    <button className="btn btn-gold" style={{flex:2}} onClick={() => setStep(4)}
-                      disabled={bookingMode === 'guest' && (!form.guestName || !form.guestEmail || !form.guestPhone)}>
+                    <button className="btn btn-gold" style={{flex:2}} onClick={() => setStep(4)} disabled={bookingMode === 'guest' && (!guestInfo.name || !guestInfo.email || !guestInfo.phone)}>
                       Continue →
                     </button>
                   </div>
                 </div>
               )}
 
-              {/* Step 4: Confirm */}
               {step === 4 && (
                 <div className="booking-step-content">
                   <h2>Confirm Your Booking</h2>
                   <div className="booking-summary">
                     {bookingMode === 'guest' && (
                       <>
-                        <div className="summary-row"><span>Name</span><strong>{form.guestName}</strong></div>
-                        <div className="summary-row"><span>Email</span><strong>{form.guestEmail}</strong></div>
-                        <div className="summary-row"><span>Phone</span><strong>{form.guestPhone}</strong></div>
+                        <div className="summary-row"><span>Name</span><strong>{guestInfo.name}</strong></div>
+                        <div className="summary-row"><span>Phone</span><strong>{guestInfo.phone}</strong></div>
                       </>
                     )}
-                    <div className="summary-row"><span>Service</span><strong>{form.service}</strong></div>
-                    <div className="summary-row"><span>Date</span><strong>{new Date(form.date).toLocaleDateString('en-GB', {weekday:'long',year:'numeric',month:'long',day:'numeric'})}</strong></div>
-                    <div className="summary-row"><span>Time</span><strong>{form.time}</strong></div>
-                    {form.notes && <div className="summary-row"><span>Notes</span><strong>{form.notes}</strong></div>}
-                    <div className="summary-row"><span>Price</span><strong>{form.originalPrice} EGP</strong></div>
-                    {discount && <div className="summary-row text-gold"><span>Discount ({discount.discount}% off)</span><strong>-{(form.originalPrice - finalPrice).toFixed(0)} EGP</strong></div>}
-                    <div className="summary-row summary-total"><span>Total</span><strong>{bookingMode === 'guest' ? form.originalPrice : finalPrice.toFixed(0)} EGP</strong></div>
+                    <div className="summary-row">
+                      <span>Services</span>
+                      <strong style={{textAlign:'right', maxWidth:'60%'}}>{selectedServices.map(s => s.name).join(', ')}</strong>
+                    </div>
+                    <div className="summary-row"><span>Date</span><strong>{new Date(date).toLocaleDateString('en-GB', {weekday:'long',year:'numeric',month:'long',day:'numeric'})}</strong></div>
+                    <div className="summary-row"><span>Time</span><strong>{time}</strong></div>
+                    {notes && <div className="summary-row"><span>Notes</span><strong>{notes}</strong></div>}
+                    <div className="summary-row"><span>Total</span><strong>{totalPrice} EGP</strong></div>
+                    {discount && <div className="summary-row text-gold"><span>Discount ({discount.discount}% off)</span><strong>-{(totalPrice - finalPrice).toFixed(0)} EGP</strong></div>}
+                    <div className="summary-row summary-total"><span>Final Total</span><strong>{bookingMode === 'guest' ? totalPrice : Math.round(finalPrice)} EGP</strong></div>
                   </div>
                   <div style={{display:'flex',gap:'12px',marginTop:'24px'}}>
                     <button className="btn btn-dark" style={{flex:1}} onClick={() => setStep(3)}>← Back</button>
@@ -351,8 +351,22 @@ export default function Booking() {
               )}
             </div>
 
-            {/* Sidebar */}
             <div className="booking-sidebar">
+              {selectedServices.length > 0 && (
+                <div className="sidebar-card card">
+                  <h4>Your Selection</h4>
+                  {selectedServices.map((s,i) => (
+                    <div key={i} style={{display:'flex', justifyContent:'space-between', padding:'6px 0', borderBottom:'1px solid var(--dark-4)', fontSize:'13px'}}>
+                      <span style={{color:'var(--gray-light)'}}>{s.name}</span>
+                      <span style={{color:'var(--gold)'}}>{s.price} EGP</span>
+                    </div>
+                  ))}
+                  <div style={{display:'flex', justifyContent:'space-between', padding:'10px 0', fontWeight:'600'}}>
+                    <span style={{color:'var(--white)'}}>Total</span>
+                    <span style={{color:'var(--gold)'}}>{totalPrice} EGP</span>
+                  </div>
+                </div>
+              )}
               <div className="sidebar-card card">
                 <h4>👑 Why Book With Us</h4>
                 <ul>
@@ -365,15 +379,12 @@ export default function Booking() {
               </div>
               <div className="sidebar-card card">
                 <h4>📞 Need Help?</h4>
-                <p>Contact us directly:</p>
                 <a href="tel:+201020564047" className="sidebar-contact">📞 +20 10 2056 4047</a>
                 <a href="https://wa.me/201020564047" target="_blank" rel="noreferrer" className="btn btn-gold" style={{width:'100%',justifyContent:'center',marginTop:'12px'}}>💬 WhatsApp Us</a>
               </div>
               <div className="sidebar-card card">
                 <h4>⏰ Opening Hours</h4>
-                <div style={{fontSize:'13px', color:'var(--gray)'}}>
-                  <p>All week: 11AM–10PM</p>
-                </div>
+                <p style={{fontSize:'13px', color:'var(--gray)'}}>All week: 11AM–10PM</p>
               </div>
             </div>
           </div>
