@@ -22,7 +22,10 @@ export default function Booking() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [bookedSlots, setBookedSlots] = useState([]);
-  const [bookingMode, setBookingMode] = useState(user ? 'user' : null);
+  const [bookingMode, setBookingMode] = useState(null);
+  useEffect(() => {
+  if (user) setBookingMode('user');
+  }, [user]);
   const [form, setForm] = useState({
     serviceCategory: '', service: '', date: '', time: '',
     notes: '', discountCode: '', originalPrice: 0,
