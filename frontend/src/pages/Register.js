@@ -137,7 +137,7 @@ export default function Register() {
                 >
                   {COUNTRIES.map(c => (
                     <option key={c.code} value={c.code}>
-                      {c.flag} {c.code} {c.name}
+                      {c.flag} {c.code}
                     </option>
                   ))}
                 </select>
