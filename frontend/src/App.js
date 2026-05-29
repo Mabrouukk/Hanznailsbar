@@ -34,7 +34,7 @@ function AppRoutes() {
         <Route path="/services" element={<Services />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/booking" element={<ProtectedRoute><Booking /></ProtectedRoute>} />
+       <Route path="/booking" element={<Booking />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
       </Routes>
