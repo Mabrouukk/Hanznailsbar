@@ -183,6 +183,7 @@ const sendBookingStatusEmail = async (booking) => {
 };
 
 module.exports = {
+  sendBookingStatusEmail,
   sendAdminNotification,
   sendWelcomeEmail,
   sendBirthdayEmail,
