@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
@@ -7,7 +7,7 @@ import './Booking.css';
 
 const API = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
-const TIME_SLOTS = [
+const ALL_TIME_SLOTS = [
   '10:00 AM','10:30 AM','11:00 AM','11:30 AM',
   '12:00 PM','12:30 PM','1:00 PM','1:30 PM',
   '2:00 PM','2:30 PM','3:00 PM','3:30 PM',
@@ -21,14 +21,12 @@ export default function Booking() {
   const [services, setServices] = useState([]);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [bookedSlots, setBookedSlots] = useState([]);
+  const [bookingMode, setBookingMode] = useState(user ? 'user' : null);
   const [form, setForm] = useState({
-    serviceCategory: '',
-    service: '',
-    date: '',
-    time: '',
-    notes: '',
-    discountCode: '',
-    originalPrice: 0
+    serviceCategory: '', service: '', date: '', time: '',
+    notes: '', discountCode: '', originalPrice: 0,
+    guestName: '', guestEmail: '', guestPhone: ''
   });
   const [discount, setDiscount] = useState(null);
   const [discountLoading, setDiscountLoading] = useState(false);
@@ -36,8 +34,18 @@ export default function Booking() {
 
   useEffect(() => {
     axios.get(`${API}/services`).then(r => setServices(r.data));
-    axios.get(`${API}/discounts/my`).then(r => setActiveCodes(r.data)).catch(() => {});
-  }, []);
+    if (user) {
+      axios.get(`${API}/discounts/my`).then(r => setActiveCodes(r.data)).catch(() => {});
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (form.date) {
+      axios.get(`${API}/bookings/slots?date=${form.date}`)
+        .then(r => setBookedSlots(r.data))
+        .catch(() => setBookedSlots([]));
+    }
+  }, [form.date]);
 
   const selectedCategory = services.find(c => c.category === form.serviceCategory);
   const selectedService = selectedCategory?.items.find(i => i.name === form.service);
@@ -75,12 +83,31 @@ export default function Booking() {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      await axios.post(`${API}/bookings`, {
-        ...form,
-        finalPrice
-      });
-      toast.success('🎉 Booking confirmed! Check your email.');
-setTimeout(() => navigate('/dashboard'), 500);
+      if (bookingMode === 'guest') {
+        if (!form.guestName || !form.guestEmail || !form.guestPhone) {
+          toast.error('Please fill in your name, email and phone');
+          setLoading(false);
+          return;
+        }
+        await axios.post(`${API}/bookings/guest`, {
+          guestName: form.guestName,
+          guestEmail: form.guestEmail,
+          guestPhone: form.guestPhone,
+          service: form.service,
+          serviceCategory: form.serviceCategory,
+          date: form.date,
+          time: form.time,
+          notes: form.notes,
+          originalPrice: form.originalPrice,
+          finalPrice: form.originalPrice
+        });
+        toast.success('🎉 Booking request sent! Check your email.');
+        setTimeout(() => navigate('/'), 1500);
+      } else {
+        await axios.post(`${API}/bookings`, { ...form, finalPrice });
+        toast.success('🎉 Booking confirmed! Check your email.');
+        setTimeout(() => navigate('/dashboard'), 1500);
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Booking failed');
     } finally {
@@ -88,10 +115,48 @@ setTimeout(() => navigate('/dashboard'), 500);
     }
   };
 
-  // Get min date (tomorrow)
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const minDate = tomorrow.toISOString().split('T')[0];
+
+  // Mode selection screen
+  if (!bookingMode) {
+    return (
+      <div className="booking-page">
+        <div className="page-header">
+          <div className="container">
+            <p>ONLINE BOOKING</p>
+            <h1>Reserve Your Appointment</h1>
+            <div className="gold-line" style={{margin:'16px auto 0'}}></div>
+          </div>
+        </div>
+        <div className="section">
+          <div className="container">
+            <div className="booking-mode-select">
+              <h2>How would you like to book?</h2>
+              <div className="booking-mode-cards">
+                <div className="booking-mode-card card" onClick={() => navigate('/login')}>
+                  <div className="mode-icon">👤</div>
+                  <h3>Login & Book</h3>
+                  <p>Access your booking history, use discount codes and get birthday offers</p>
+                  <Link to="/login" className="btn btn-gold" style={{marginTop:'16px'}}>Login</Link>
+                </div>
+                <div className="booking-mode-card card" onClick={() => setBookingMode('guest')}>
+                  <div className="mode-icon">⚡</div>
+                  <h3>Book as Guest</h3>
+                  <p>Quick booking without an account. Just your name, email and phone</p>
+                  <button className="btn btn-outline" style={{marginTop:'16px'}} onClick={() => setBookingMode('guest')}>Continue as Guest</button>
+                </div>
+              </div>
+              <p style={{textAlign:'center', marginTop:'16px', color:'var(--gray)', fontSize:'13px'}}>
+                Don't have an account? <Link to="/register" style={{color:'var(--gold)'}}>Register free</Link> and get birthday discounts!
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="booking-page">
@@ -105,12 +170,17 @@ setTimeout(() => navigate('/dashboard'), 500);
 
       <div className="section">
         <div className="container">
+          {bookingMode === 'guest' && (
+            <div style={{textAlign:'center', marginBottom:'24px'}}>
+              <span style={{color:'var(--gray)', fontSize:'13px'}}>
+                Booking as guest — <button onClick={() => setBookingMode(null)} style={{background:'none', border:'none', color:'var(--gold)', cursor:'pointer', fontSize:'13px'}}>change</button>
+              </span>
+            </div>
+          )}
           <div className="booking-layout">
-            {/* Steps */}
             <div className="booking-form-wrap">
-              {/* Progress */}
               <div className="booking-steps">
-                {['Service','Date & Time','Confirm'].map((s,i) => (
+                {['Service','Date & Time','Details','Confirm'].map((s,i) => (
                   <div key={i} className={`booking-step ${step > i+1 ? 'done' : ''} ${step === i+1 ? 'active' : ''}`}>
                     <div className="step-num">{step > i+1 ? '✓' : i+1}</div>
                     <span>{s}</span>
@@ -150,11 +220,7 @@ setTimeout(() => navigate('/dashboard'), 500);
                       </div>
                     </div>
                   )}
-                  <button
-                    className="btn btn-gold" style={{width:'100%',marginTop:'24px'}}
-                    onClick={() => setStep(2)}
-                    disabled={!form.service}
-                  >Continue →</button>
+                  <button className="btn btn-gold" style={{width:'100%',marginTop:'24px'}} onClick={() => setStep(2)} disabled={!form.service}>Continue →</button>
                 </div>
               )}
 
@@ -170,76 +236,110 @@ setTimeout(() => navigate('/dashboard'), 500);
                     <div className="form-group">
                       <label>Select Time Slot</label>
                       <div className="time-slots">
-                        {TIME_SLOTS.map((t,i) => (
-                          <button
-                            key={i}
-                            className={`time-slot ${form.time === t ? 'selected' : ''}`}
-                            onClick={() => setForm(prev => ({...prev, time: t}))}
-                            type="button"
-                          >{t}</button>
-                        ))}
+                        {ALL_TIME_SLOTS.map((t,i) => {
+                          const isBooked = bookedSlots.includes(t);
+                          return (
+                            <button
+                              key={i}
+                              className={`time-slot ${form.time === t ? 'selected' : ''} ${isBooked ? 'booked' : ''}`}
+                              onClick={() => !isBooked && setForm(prev => ({...prev, time: t}))}
+                              type="button"
+                              disabled={isBooked}
+                              title={isBooked ? 'Already booked' : ''}
+                            >{t}{isBooked ? ' ✗' : ''}</button>
+                          );
+                        })}
                       </div>
+                      <p style={{fontSize:'12px', color:'var(--gray)', marginTop:'8px'}}>✗ = slot already booked</p>
                     </div>
                   )}
                   <div className="form-group">
                     <label>Notes (optional)</label>
-                    <textarea name="notes" value={form.notes} onChange={handleChange} placeholder="Any special requests or information?" />
+                    <textarea name="notes" value={form.notes} onChange={handleChange} placeholder="Any special requests?" />
                   </div>
                   <div style={{display:'flex',gap:'12px'}}>
                     <button className="btn btn-dark" style={{flex:1}} onClick={() => setStep(1)}>← Back</button>
-                    <button
-                      className="btn btn-gold" style={{flex:2}}
-                      onClick={() => setStep(3)}
-                      disabled={!form.date || !form.time}
-                    >Continue →</button>
+                    <button className="btn btn-gold" style={{flex:2}} onClick={() => setStep(3)} disabled={!form.date || !form.time}>Continue →</button>
                   </div>
                 </div>
               )}
 
-              {/* Step 3: Confirm */}
+              {/* Step 3: Guest Details or Discount */}
               {step === 3 && (
+                <div className="booking-step-content">
+                  {bookingMode === 'guest' ? (
+                    <>
+                      <h2>Your Details</h2>
+                      <div className="form-group">
+                        <label>Full Name <span style={{color:'red'}}>*</span></label>
+                        <input type="text" name="guestName" value={form.guestName} onChange={handleChange} placeholder="Your full name" required />
+                      </div>
+                      <div className="form-group">
+                        <label>Email Address <span style={{color:'red'}}>*</span></label>
+                        <input type="email" name="guestEmail" value={form.guestEmail} onChange={handleChange} placeholder="your@email.com" required />
+                      </div>
+                      <div className="form-group">
+                        <label>Phone Number <span style={{color:'red'}}>*</span></label>
+                        <input type="tel" name="guestPhone" value={form.guestPhone} onChange={handleChange} placeholder="+20 10 XXXX XXXX" required />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <h2>Apply Discount</h2>
+                      {activeCodes.length > 0 && (
+                        <div className="discount-codes-available">
+                          <p>🎉 Your active discount codes:</p>
+                          {activeCodes.map((c,i) => (
+                            <button key={i} className="available-code" onClick={() => setForm(prev => ({...prev, discountCode: c.code}))}>
+                              {c.code} ({c.discount}% OFF)
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      <div className="discount-input-row">
+                        <div className="form-group" style={{flex:1, marginBottom:0}}>
+                          <label>Discount Code</label>
+                          <input type="text" name="discountCode" value={form.discountCode} onChange={handleChange} placeholder="Enter code" style={{textTransform:'uppercase'}} />
+                        </div>
+                        <button className="btn btn-outline apply-btn" onClick={applyDiscount} disabled={discountLoading}>
+                          {discountLoading ? '...' : 'Apply'}
+                        </button>
+                      </div>
+                      {discount && <p className="discount-success">✅ {discount.message}</p>}
+                    </>
+                  )}
+                  <div style={{display:'flex',gap:'12px',marginTop:'24px'}}>
+                    <button className="btn btn-dark" style={{flex:1}} onClick={() => setStep(2)}>← Back</button>
+                    <button className="btn btn-gold" style={{flex:2}} onClick={() => setStep(4)}
+                      disabled={bookingMode === 'guest' && (!form.guestName || !form.guestEmail || !form.guestPhone)}>
+                      Continue →
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 4: Confirm */}
+              {step === 4 && (
                 <div className="booking-step-content">
                   <h2>Confirm Your Booking</h2>
                   <div className="booking-summary">
+                    {bookingMode === 'guest' && (
+                      <>
+                        <div className="summary-row"><span>Name</span><strong>{form.guestName}</strong></div>
+                        <div className="summary-row"><span>Email</span><strong>{form.guestEmail}</strong></div>
+                        <div className="summary-row"><span>Phone</span><strong>{form.guestPhone}</strong></div>
+                      </>
+                    )}
                     <div className="summary-row"><span>Service</span><strong>{form.service}</strong></div>
-                    <div className="summary-row"><span>Category</span><strong>{form.serviceCategory}</strong></div>
                     <div className="summary-row"><span>Date</span><strong>{new Date(form.date).toLocaleDateString('en-GB', {weekday:'long',year:'numeric',month:'long',day:'numeric'})}</strong></div>
                     <div className="summary-row"><span>Time</span><strong>{form.time}</strong></div>
                     {form.notes && <div className="summary-row"><span>Notes</span><strong>{form.notes}</strong></div>}
-                    <div className="summary-row"><span>Original Price</span><strong>{form.originalPrice} EGP</strong></div>
+                    <div className="summary-row"><span>Price</span><strong>{form.originalPrice} EGP</strong></div>
                     {discount && <div className="summary-row text-gold"><span>Discount ({discount.discount}% off)</span><strong>-{(form.originalPrice - finalPrice).toFixed(0)} EGP</strong></div>}
-                    <div className="summary-row summary-total"><span>Total</span><strong>{finalPrice.toFixed(0)} EGP</strong></div>
+                    <div className="summary-row summary-total"><span>Total</span><strong>{bookingMode === 'guest' ? form.originalPrice : finalPrice.toFixed(0)} EGP</strong></div>
                   </div>
-
-                  {/* Discount Code */}
-                  {activeCodes.length > 0 && (
-                    <div className="discount-codes-available">
-                      <p>🎉 You have active discount codes:</p>
-                      {activeCodes.map((c,i) => (
-                        <button key={i} className="available-code" onClick={() => setForm(prev => ({...prev, discountCode: c.code}))}>
-                          {c.code} ({c.discount}% OFF)
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="discount-input-row">
-                    <div className="form-group" style={{flex:1, marginBottom:0}}>
-                      <label>Discount Code</label>
-                      <input
-                        type="text" name="discountCode" value={form.discountCode}
-                        onChange={handleChange} placeholder="Enter discount code"
-                        style={{textTransform:'uppercase'}}
-                      />
-                    </div>
-                    <button className="btn btn-outline apply-btn" onClick={applyDiscount} disabled={discountLoading}>
-                      {discountLoading ? '...' : 'Apply'}
-                    </button>
-                  </div>
-                  {discount && <p className="discount-success">✅ {discount.message}</p>}
-
                   <div style={{display:'flex',gap:'12px',marginTop:'24px'}}>
-                    <button className="btn btn-dark" style={{flex:1}} onClick={() => setStep(2)}>← Back</button>
+                    <button className="btn btn-dark" style={{flex:1}} onClick={() => setStep(3)}>← Back</button>
                     <button className="btn btn-gold" style={{flex:2}} onClick={handleSubmit} disabled={loading}>
                       {loading ? 'Confirming...' : '✅ Confirm Booking'}
                     </button>
@@ -269,10 +369,7 @@ setTimeout(() => navigate('/dashboard'), 500);
               <div className="sidebar-card card">
                 <h4>⏰ Opening Hours</h4>
                 <div style={{fontSize:'13px', color:'var(--gray)'}}>
-                  <p>Mon–Thu: 10AM–9PM</p>
-                  <p>Friday: 2PM–9PM</p>
-                  <p>Saturday: 10AM–10PM</p>
-                  <p>Sunday: 10AM–9PM</p>
+                  <p>All week: 11AM–10PM</p>
                 </div>
               </div>
             </div>
