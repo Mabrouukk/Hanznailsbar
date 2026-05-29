@@ -1,22 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap');
 
 :root {
-  --gold: #d4af37;
-  --gold-light: #e8c84a;
-  --gold-dark: #b8941f;
-  --black: #0a0a0a;
-  --dark: #111111;
-  --dark-2: #1a1a1a;
-  --dark-3: #222222;
-  --dark-4: #2a2a2a;
-  --white: #ffffff;
-  --gray: #888888;
-  --gray-light: #cccccc;
+  --gold: #B8860B;
+  --gold-light: #D4A017;
+  --gold-dark: #8B6508;
+  --black: #FAFAF7;
+  --dark: #F5F3EE;
+  --dark-2: #FFFFFF;
+  --dark-3: #F5F3EE;
+  --dark-4: #E8E4DA;
+  --white: #1a1a1a;
+  --gray: #6b6b6b;
+  --gray-light: #3a3a3a;
   --font-serif: 'Cormorant Garamond', Georgia, serif;
   --font-sans: 'Montserrat', sans-serif;
   --radius: 8px;
-  --shadow: 0 4px 24px rgba(0,0,0,0.4);
-  --shadow-gold: 0 0 30px rgba(212, 175, 55, 0.15);
+  --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  --shadow-gold: 0 0 30px rgba(184, 134, 11, 0.15);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -40,7 +40,7 @@ img { max-width: 100%; }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--dark); }
+::-webkit-scrollbar-track { background: var(--dark-3); }
 ::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 3px; }
 
 /* Loading */
@@ -81,9 +81,9 @@ img { max-width: 100%; }
   transform: translateY(-2px);
 }
 .btn-dark {
-  background: var(--dark-3); color: var(--white); border: 1px solid var(--dark-4);
+  background: var(--dark-4); color: var(--white); border: 1px solid #ccc;
 }
-.btn-dark:hover { background: var(--dark-4); transform: translateY(-2px); }
+.btn-dark:hover { background: #ddd; color: #111; transform: translateY(-2px); }
 
 /* Form Elements */
 .form-group { margin-bottom: 20px; }
