@@ -3,9 +3,9 @@ const router = express.Router();
 const Booking = require('../models/Booking');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
-const { sendBookingConfirmation } = require('../utils/emailService');
+const { sendBookingConfirmation, sendGuestBookingConfirmation } = require('../utils/emailService');
 
-// @POST /api/bookings - Create booking
+// @POST /api/bookings - Create booking (logged in users)
 router.post('/', auth, async (req, res) => {
   try {
     const { service, serviceCategory, date, time, notes, discountCode, originalPrice } = req.body;
@@ -31,29 +31,76 @@ router.post('/', auth, async (req, res) => {
       userName: user.name,
       userEmail: user.email,
       userPhone: user.phone,
-      service,
-      serviceCategory,
+      service, serviceCategory,
       date: new Date(date),
-      time,
-      notes,
-      discountCode,
-      discountPercent,
-      originalPrice,
-      finalPrice
+      time, notes, discountCode, discountPercent, originalPrice, finalPrice
     });
 
-    // Send email in background - never blocks response
     sendBookingConfirmation(user, booking).catch(err =>
       console.error('Booking confirmation email error:', err)
     );
 
-    res.status(201).json({
-      message: 'Booking confirmed! See you soon 💅',
-      booking
-    });
+    res.status(201).json({ message: 'Booking confirmed! See you soon 💅', booking });
   } catch (error) {
     console.error('Booking error:', error);
     res.status(500).json({ message: 'Server error creating booking' });
+  }
+});
+
+// @POST /api/bookings/guest - Guest booking
+router.post('/guest', async (req, res) => {
+  try {
+    const { guestName, guestEmail, guestPhone, service, serviceCategory, date, time, notes, originalPrice } = req.body;
+
+    if (!guestName || !guestEmail || !guestPhone) {
+      return res.status(400).json({ message: 'Name, email and phone are required' });
+    }
+    if (!service || !date || !time) {
+      return res.status(400).json({ message: 'Service, date and time are required' });
+    }
+
+    const booking = await Booking.create({
+      userName: guestName,
+      userEmail: guestEmail,
+      userPhone: guestPhone,
+      isGuest: true,
+      service, serviceCategory,
+      date: new Date(date),
+      time, notes,
+      originalPrice: originalPrice || 0,
+      finalPrice: originalPrice || 0
+    });
+
+    sendGuestBookingConfirmation(booking).catch(err =>
+      console.error('Guest booking email error:', err)
+    );
+
+    res.status(201).json({ message: 'Booking request sent! We will confirm shortly 💅', booking });
+  } catch (error) {
+    console.error('Guest booking error:', error);
+    res.status(500).json({ message: 'Server error creating booking' });
+  }
+});
+
+// @GET /api/bookings/slots - Get booked slots for a date
+router.get('/slots', async (req, res) => {
+  try {
+    const { date } = req.query;
+    if (!date) return res.status(400).json({ message: 'Date required' });
+
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(date);
+    end.setHours(23, 59, 59, 999);
+
+    const bookings = await Booking.find({
+      date: { $gte: start, $lte: end },
+      status: { $nin: ['cancelled'] }
+    }).select('time');
+
+    res.json(bookings.map(b => b.time));
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
