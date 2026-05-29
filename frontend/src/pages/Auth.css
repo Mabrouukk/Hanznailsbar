@@ -62,8 +62,8 @@
 .phone-input-row {
   display: flex;
   gap: 8px;
+  align-items: center;
 }
-
 .country-select {
   background: var(--dark-3);
   border: 1px solid var(--dark-4);
@@ -74,10 +74,14 @@
   font-size: 13px;
   cursor: pointer;
   outline: none;
-  width: 110px;
+  width: 90px;
   flex-shrink: 0;
 }
 
+
 .country-select:focus { border-color: var(--gold); }
 
-.phone-input-row input { flex: 1; }
+.phone-input-row input {
+  flex: 1;
+  min-width: 0;
+}
