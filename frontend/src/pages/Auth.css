@@ -47,3 +47,37 @@
 @media (max-width: 480px) {
   .auth-card { padding: 32px 24px; }
 }
+.required-star { color: #d4af37; font-size: 12px; }
+
+.input-error { border-color: #dc3545 !important; }
+
+.error-msg {
+  display: block;
+  color: #dc3545;
+  font-size: 11px;
+  margin-top: 4px;
+  letter-spacing: 0.3px;
+}
+
+.phone-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.country-select {
+  background: var(--dark-3);
+  border: 1px solid var(--dark-4);
+  color: var(--white);
+  padding: 10px 8px;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  min-width: 140px;
+  flex-shrink: 0;
+}
+
+.country-select:focus { border-color: var(--gold); }
+
+.phone-input-row input { flex: 1; }
