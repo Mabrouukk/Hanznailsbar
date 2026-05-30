@@ -37,13 +37,6 @@ const services = [
   }
 ];
 
-const servicesWithUpdatedPrices = services.map(category => ({
-  ...category,
-  items: category.items.map(item => ({
-    ...item,
-    price: Number((item.price * 1.25).toFixed(2))
-  }))
-}));
 
 router.get('/', (req, res) => {
   res.json(services);
