@@ -56,10 +56,6 @@ export default function Home() {
             <Link to="/booking" className="btn btn-gold btn-lg">Book Now</Link>
             <Link to="/services" className="btn btn-outline btn-lg">View Services</Link>
           </div>
-          <div className="hero-stats animate-fade-up" style={{animationDelay:'0.4s'}}>
-            <div className="stat-divider"></div>
-            <div className="stat"><strong>100%</strong><span>Professional Staff</span></div>
-          </div>
         </div>
         <div className="hero-scroll">
           <div className="scroll-line"></div>
