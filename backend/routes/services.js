@@ -42,7 +42,6 @@ router.get('/', (req, res) => {
   res.json(services);
 });
 
-// Return prices increased by 25%
 router.get('/', (req, res) => {
   res.json(servicesWithUpdatedPrices);
 });
