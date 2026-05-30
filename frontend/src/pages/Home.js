@@ -57,9 +57,6 @@ export default function Home() {
             <Link to="/services" className="btn btn-outline btn-lg">View Services</Link>
           </div>
           <div className="hero-stats animate-fade-up" style={{animationDelay:'0.4s'}}>
-            <div className="stat"><strong>500+</strong><span>Happy Clients</span></div>
-            <div className="stat-divider"></div>
-            <div className="stat"><strong>5+</strong><span>Years Experience</span></div>
             <div className="stat-divider"></div>
             <div className="stat"><strong>100%</strong><span>Professional Staff</span></div>
           </div>
