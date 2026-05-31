@@ -23,6 +23,7 @@ export default function Navbar() {
     navigate('/');
   };
 
+
   return (
     <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
       <div className="navbar-inner">
@@ -33,6 +34,22 @@ export default function Navbar() {
             <span className="brand-tagline">The Art of Timeless Polish</span>
           </div>
         </Link>
+
+        {/* 20% Price Increase Badge */}
+        <div style={{
+          background: '#ffecb3',
+          color: '#b8860b',
+          fontWeight: 'bold',
+          borderRadius: '20px',
+          padding: '6px 18px',
+          marginLeft: '24px',
+          fontSize: '1rem',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
+          display: 'inline-block',
+          letterSpacing: '0.5px',
+        }}>
+          20% increase over all prices now
+        </div>
 
         <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
           <span className={menuOpen ? 'open' : ''}></span>
