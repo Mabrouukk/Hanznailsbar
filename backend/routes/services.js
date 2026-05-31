@@ -38,12 +38,17 @@ const services = [
 ];
 
 
-router.get('/', (req, res) => {
-  res.json(services);
-});
 
+// Return prices increased by 25%
 router.get('/', (req, res) => {
-  res.json(servicesWithUpdatedPrices);
+  const updated = services.map(category => ({
+    ...category,
+    items: category.items.map(item => ({
+      ...item,
+      price: Number((item.price * 1.25).toFixed(2))
+    }))
+  }));
+  res.json(updated);
 });
 
 module.exports = router;
