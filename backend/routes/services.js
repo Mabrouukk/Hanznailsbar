@@ -40,9 +40,10 @@ const services = [
 
 
 // Return prices increased by 25%
-// Helper to round up to nearest 10
-function roundUp10(n) {
-  return Math.ceil(n / 10) * 10;
+
+// Helper to round up to nearest 50
+function roundUp50(n) {
+  return Math.ceil(n / 50) * 50;
 }
 
 router.get('/', (req, res) => {
@@ -50,7 +51,7 @@ router.get('/', (req, res) => {
     ...category,
     items: category.items.map(item => ({
       ...item,
-      price: roundUp10(item.price * 1.25)
+      price: roundUp50(item.price * 1.25)
     }))
   }));
   res.json(updated);
