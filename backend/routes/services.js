@@ -40,12 +40,17 @@ const services = [
 
 
 // Return prices increased by 25%
+// Helper to round up to nearest 10
+function roundUp10(n) {
+  return Math.ceil(n / 10) * 10;
+}
+
 router.get('/', (req, res) => {
   const updated = services.map(category => ({
     ...category,
     items: category.items.map(item => ({
       ...item,
-      price: Number((item.price * 1.25).toFixed(2))
+      price: roundUp10(item.price * 1.25)
     }))
   }));
   res.json(updated);
