@@ -29,10 +29,11 @@ category: "Nail Services",
       { name: "Nail Art Design", price: 20 },
       { name: "Nail Art Design (Complex)", price: 50 },
       { name: "3D Design One Finger", price: 75 },
-      { name: "Fixing", price: 75 },
+      { name: "Fixing two fingers", price: 75 },
       { name: "Remove", price: 150 },
       { name: "Classic Pedicure", price: 250 },
       { name: "VIP Pedicure", price: 500 },
+      { name: "Refill Hard Gel + Color", price: 650 },
     ]
   }
 ];
