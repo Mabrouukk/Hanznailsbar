@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -18,6 +18,7 @@ const ALL_TIME_SLOTS = [
 export default function Booking() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const formRef = useRef(null);
   const [services, setServices] = useState([]);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -51,6 +52,13 @@ export default function Booking() {
         .catch(() => setBookedSlots([]));
     }
   }, [date]);
+
+  const goToStep = (n) => {
+    setStep(n);
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  };
 
   const toggleService = (item, categoryName) => {
     const exists = selectedServices.find(s => s.name === item.name);
@@ -178,7 +186,7 @@ export default function Booking() {
             </div>
           )}
           <div className="booking-layout">
-            <div className="booking-form-wrap">
+            <div className="booking-form-wrap" ref={formRef}>
               <div className="booking-steps">
                 {['Services','Date & Time', bookingMode === 'guest' ? 'Your Details' : 'Discount','Confirm'].map((s,i) => (
                   <div key={i} className={`booking-step ${step > i+1 ? 'done' : ''} ${step === i+1 ? 'active' : ''}`}>
@@ -228,7 +236,7 @@ export default function Booking() {
                       </div>
                     </div>
                   ))}
-                  <button className="btn btn-gold" style={{width:'100%', marginTop:'24px'}} onClick={() => setStep(2)} disabled={selectedServices.length === 0}>
+                  <button className="btn btn-gold" style={{width:'100%', marginTop:'24px'}} onClick={() => goToStep(2)} disabled={selectedServices.length === 0}>
                     Continue → ({selectedServices.length} service{selectedServices.length !== 1 ? 's' : ''} — {totalPrice} EGP)
                   </button>
                 </div>
@@ -262,8 +270,8 @@ export default function Booking() {
                     <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Any special requests?" />
                   </div>
                   <div style={{display:'flex',gap:'12px'}}>
-                    <button className="btn btn-dark" style={{flex:1}} onClick={() => setStep(1)}>← Back</button>
-                    <button className="btn btn-gold" style={{flex:2}} onClick={() => setStep(3)} disabled={!date || !time}>Continue →</button>
+                    <button className="btn btn-dark" style={{flex:1}} onClick={() => goToStep(1)}>← Back</button>
+                    <button className="btn btn-gold" style={{flex:2}} onClick={() => goToStep(3)} disabled={!date || !time}>Continue →</button>
                   </div>
                 </div>
               )}
@@ -312,8 +320,8 @@ export default function Booking() {
                     </>
                   )}
                   <div style={{display:'flex',gap:'12px',marginTop:'24px'}}>
-                    <button className="btn btn-dark" style={{flex:1}} onClick={() => setStep(2)}>← Back</button>
-                    <button className="btn btn-gold" style={{flex:2}} onClick={() => setStep(4)} disabled={bookingMode === 'guest' && (!guestInfo.name || !guestInfo.email || !guestInfo.phone)}>
+                    <button className="btn btn-dark" style={{flex:1}} onClick={() => goToStep(2)}>← Back</button>
+                    <button className="btn btn-gold" style={{flex:2}} onClick={() => goToStep(4)} disabled={bookingMode === 'guest' && (!guestInfo.name || !guestInfo.email || !guestInfo.phone)}>
                       Continue →
                     </button>
                   </div>
@@ -342,7 +350,7 @@ export default function Booking() {
                     <div className="summary-row summary-total"><span>Final Total</span><strong>{bookingMode === 'guest' ? totalPrice : Math.round(finalPrice)} EGP</strong></div>
                   </div>
                   <div style={{display:'flex',gap:'12px',marginTop:'24px'}}>
-                    <button className="btn btn-dark" style={{flex:1}} onClick={() => setStep(3)}>← Back</button>
+                    <button className="btn btn-dark" style={{flex:1}} onClick={() => goToStep(3)}>← Back</button>
                     <button className="btn btn-gold" style={{flex:2}} onClick={handleSubmit} disabled={loading}>
                       {loading ? 'Confirming...' : '✅ Confirm Booking'}
                     </button>
