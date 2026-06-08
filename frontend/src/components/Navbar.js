@@ -43,12 +43,12 @@ export default function Navbar() {
           borderRadius: '20px',
           padding: '6px 18px',
           marginLeft: '24px',
-          fontSize: '0.5rem',
+          fontSize: '0.75rem',
           boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
           display: 'inline-block',
           letterSpacing: '0.5px',
         }}>
-          sign up now and get 20% off your service
+          Sign up now and get 20% off your service
         </div>
 
         <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
