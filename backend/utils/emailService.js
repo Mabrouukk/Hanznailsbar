@@ -1,12 +1,21 @@
-const { Resend } = require('resend');
-const resend = new Resend(process.env.RESEND_API_KEY);
+const nodemailer = require('nodemailer');
 
-const FROM_SYSTEM = 'Hanz Nails <onboarding@resend.dev>';
-const FROM_SALON = 'Hanz Nails Salon <onboarding@resend.dev>';
+const transporter = nodemailer.createTransport({
+  host: 'smtp-relay.brevo.com',
+  port: 587,
+  secure: false,
+  auth: {
+    user: 'ae0726001@smtp-brevo.com',
+    pass: 'xsmtpsib-0ff0f6bc424801ee027c10ad60bbd752a724ad2d810c82b4a1b2367be8c0ad5d-9wodzlfCWdPyFfDz'
+  }
+});
+
+const FROM_SYSTEM = '"Hanz Nails" <hanznailsbar@gmail.com>';
+const FROM_SALON = '"Hanz Nails Salon" <hanznailsbar@gmail.com>';
 
 const sendAdminNotification = async (user) => {
   try {
-    await resend.emails.send({
+    await transporter.sendMail({
       from: FROM_SYSTEM,
       to: process.env.ADMIN_EMAIL,
       subject: 'New Customer Registration - Hanz Nails',
@@ -30,7 +39,7 @@ const sendAdminNotification = async (user) => {
 
 const sendWelcomeEmail = async (user) => {
   try {
-    await resend.emails.send({
+    await transporter.sendMail({
       from: FROM_SALON,
       to: user.email,
       subject: 'Welcome to Hanz Nails Salon!',
@@ -62,7 +71,7 @@ const sendWelcomeEmail = async (user) => {
 
 const sendBirthdayEmail = async (user, code) => {
   try {
-    await resend.emails.send({
+    await transporter.sendMail({
       from: FROM_SALON,
       to: user.email,
       subject: 'Happy Birthday! Your 50% Off Gift from Hanz Nails',
@@ -89,7 +98,7 @@ const sendBirthdayEmail = async (user, code) => {
 
 const sendBookingConfirmation = async (user, booking) => {
   try {
-    await resend.emails.send({
+    await transporter.sendMail({
       from: FROM_SALON,
       to: user.email,
       subject: 'Booking Received - Hanz Nails Salon',
@@ -155,7 +164,7 @@ const sendBookingStatusEmail = async (booking) => {
         </div>`;
     }
 
-    await resend.emails.send({
+    await transporter.sendMail({
       from: FROM_SALON,
       to: userEmail,
       subject,
@@ -184,7 +193,7 @@ const sendBookingStatusEmail = async (booking) => {
 
 const sendAdminBookingAlert = async (booking) => {
   try {
-    await resend.emails.send({
+    await transporter.sendMail({
       from: FROM_SYSTEM,
       to: process.env.ADMIN_EMAIL,
       subject: `New Booking — ${booking.userName} | ${booking.service}`,
@@ -215,7 +224,7 @@ const sendAdminBookingAlert = async (booking) => {
 
 const sendGuestBookingConfirmation = async (booking) => {
   try {
-    await resend.emails.send({
+    await transporter.sendMail({
       from: FROM_SALON,
       to: booking.userEmail,
       subject: 'Booking Request Received - Hanz Nails Salon',
