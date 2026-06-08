@@ -3,7 +3,7 @@ const router = express.Router();
 const Booking = require('../models/Booking');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
-const { sendBookingConfirmation, sendGuestBookingConfirmation } = require('../utils/emailService');
+const { sendBookingConfirmation, sendGuestBookingConfirmation, sendAdminBookingAlert } = require('../utils/emailService');
 
 // @POST /api/bookings - Create booking (logged in users)
 router.post('/', auth, async (req, res) => {
@@ -39,6 +39,9 @@ router.post('/', auth, async (req, res) => {
     sendBookingConfirmation(user, booking).catch(err =>
       console.error('Booking confirmation email error:', err)
     );
+    sendAdminBookingAlert(booking).catch(err =>
+      console.error('Admin booking alert error:', err)
+    );
 
     res.status(201).json({ message: 'Booking confirmed! See you soon 💅', booking });
   } catch (error) {
@@ -73,6 +76,9 @@ router.post('/guest', async (req, res) => {
 
     sendGuestBookingConfirmation(booking).catch(err =>
       console.error('Guest booking email error:', err)
+    );
+    sendAdminBookingAlert(booking).catch(err =>
+      console.error('Admin booking alert error:', err)
     );
 
     res.status(201).json({ message: 'Booking request sent! We will confirm shortly 💅', booking });

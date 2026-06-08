@@ -169,6 +169,36 @@ const sendBookingStatusEmail = async (booking) => {
     console.error('Status email error:', error.message);
   }
 };
+const sendAdminBookingAlert = async (booking) => {
+  try {
+    await transporter.sendMail({
+      from: `"Hanz Nails System" <${process.env.EMAIL_USER}>`,
+      to: process.env.ADMIN_EMAIL,
+      subject: `New Booking — ${booking.userName} | ${booking.service}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #1a1a1a; color: #fff; padding: 30px; border-radius: 12px;">
+          <h1 style="color: #d4af37; text-align: center;">New Booking Received</h1>
+          <div style="background: #2a2a2a; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p><strong style="color: #d4af37;">Name:</strong> ${booking.userName}</p>
+            <p><strong style="color: #d4af37;">Email:</strong> ${booking.userEmail}</p>
+            <p><strong style="color: #d4af37;">Phone:</strong> ${booking.userPhone}</p>
+            <p><strong style="color: #d4af37;">Service:</strong> ${booking.service}</p>
+            <p><strong style="color: #d4af37;">Date:</strong> ${new Date(booking.date).toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            <p><strong style="color: #d4af37;">Time:</strong> ${booking.time}</p>
+            ${booking.finalPrice > 0 ? `<p><strong style="color: #d4af37;">Price:</strong> ${booking.finalPrice} EGP</p>` : ''}
+            ${booking.notes ? `<p><strong style="color: #d4af37;">Notes:</strong> ${booking.notes}</p>` : ''}
+            ${booking.isGuest ? `<p style="color: #f4a261;"><strong>⚠ Guest booking (no account)</strong></p>` : ''}
+          </div>
+          <div style="text-align: center;">
+            <a href="${process.env.CLIENT_URL}/admin" style="background: #d4af37; color: #000; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">Open Admin Dashboard</a>
+          </div>
+        </div>
+      `
+    });
+  } catch (error) {
+    console.error('Admin booking alert error:', error.message);
+  }
+};
 
 const sendGuestBookingConfirmation = async (booking) => {
   try {
@@ -209,5 +239,6 @@ module.exports = {
   sendBirthdayEmail,
   sendBookingConfirmation,
   sendBookingStatusEmail,
-  sendGuestBookingConfirmation
+  sendGuestBookingConfirmation,
+  sendAdminBookingAlert 
 };
