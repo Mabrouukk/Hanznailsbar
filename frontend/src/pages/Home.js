@@ -3,12 +3,12 @@ import { Link } from 'react-router-dom';
 import './Home.css';
 
 const WHY_US = [
-  { icon: '👑', title: 'Professional Technicians Only', desc: 'Every member of our team is a certified professional with years of experience. We never compromise on skill.' },
-  { icon: '☕', title: 'Free Beverages', desc: 'Enjoy complimentary coffee, iced coffee, and matcha while you relax and let us take care of your beauty.' },
-  { icon: '🎂', title: '50% Birthday Discount', desc: 'Register with your birthday and receive an automatic 50% discount code on your special day. Our gift to you.' },
-  { icon: '🌿', title: 'Premium Products', desc: 'We use only high-quality, skin-safe products and the latest techniques for lasting, beautiful results.' },
-  { icon: '⏰', title: 'Online Booking', desc: 'Book your appointment 24/7 from the comfort of your home. Easy, fast, and confirmed instantly.' },
-  { icon: '✨', title: 'Artistry & Precision', desc: 'From classic French tips to elaborate nail art and volume lashes — we craft each look with meticulous care.' },
+  { icon: '', title: 'Professional Technicians Only', desc: 'Every member of our team is a certified professional with years of experience. We never compromise on skill.' },
+  { icon: '', title: 'Free Beverages', desc: 'Enjoy complimentary coffee, iced coffee, and matcha while you relax and let us take care of your beauty.' },
+  { icon: '', title: '50% Birthday Discount', desc: 'Register with your birthday and receive an automatic 50% discount code on your special day. Our gift to you.' },
+  { icon: '', title: 'Premium Products', desc: 'We use only high-quality, skin-safe products and the latest techniques for lasting, beautiful results.' },
+  { icon: '', title: 'Online Booking', desc: 'Book your appointment 24/7 from the comfort of your home. Easy, fast, and confirmed instantly.' },
+  { icon: '', title: 'Artistry & Precision', desc: 'From classic French tips to elaborate nail art and volume lashes — we craft each look with meticulous care.' },
 ];
 
 const SERVICES_PREVIEW = [
