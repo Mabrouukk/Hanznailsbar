@@ -1,17 +1,13 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+const FROM_SYSTEM = 'Hanz Nails <onboarding@resend.dev>';
+const FROM_SALON = 'Hanz Nails Salon <onboarding@resend.dev>';
 
 const sendAdminNotification = async (user) => {
   try {
-    await transporter.sendMail({
-      from: `"Hanz Nails System" <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+      from: FROM_SYSTEM,
       to: process.env.ADMIN_EMAIL,
       subject: 'New Customer Registration - Hanz Nails',
       html: `
@@ -34,8 +30,8 @@ const sendAdminNotification = async (user) => {
 
 const sendWelcomeEmail = async (user) => {
   try {
-    await transporter.sendMail({
-      from: `"Hanz Nails Salon" <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+      from: FROM_SALON,
       to: user.email,
       subject: 'Welcome to Hanz Nails Salon!',
       html: `
@@ -55,9 +51,7 @@ const sendWelcomeEmail = async (user) => {
           <div style="text-align: center; margin: 30px 0;">
             <a href="${process.env.CLIENT_URL}/booking" style="background: #d4af37; color: #000; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Book Your Appointment</a>
           </div>
-          <p style="color: #888; text-align: center; font-size: 14px;">
-            19 Ali Amer, Nasr City, Cairo — +20 10 2056 4047
-          </p>
+          <p style="color: #888; text-align: center; font-size: 14px;">19 Ali Amer, Nasr City, Cairo — +20 10 2056 4047</p>
         </div>
       `
     });
@@ -68,8 +62,8 @@ const sendWelcomeEmail = async (user) => {
 
 const sendBirthdayEmail = async (user, code) => {
   try {
-    await transporter.sendMail({
-      from: `"Hanz Nails Salon" <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+      from: FROM_SALON,
       to: user.email,
       subject: 'Happy Birthday! Your 50% Off Gift from Hanz Nails',
       html: `
@@ -95,8 +89,8 @@ const sendBirthdayEmail = async (user, code) => {
 
 const sendBookingConfirmation = async (user, booking) => {
   try {
-    await transporter.sendMail({
-      from: `"Hanz Nails Salon" <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+      from: FROM_SALON,
       to: user.email,
       subject: 'Booking Received - Hanz Nails Salon',
       html: `
@@ -124,8 +118,8 @@ const sendBookingStatusEmail = async (booking) => {
     const userName = booking.userName || (booking.user && booking.user.name);
     const isConfirmed = booking.status === 'confirmed';
 
-    await transporter.sendMail({
-      from: `"Hanz Nails Salon" <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+      from: FROM_SALON,
       to: userEmail,
       subject: isConfirmed
         ? 'Your Appointment is Confirmed - Hanz Nails'
@@ -158,9 +152,7 @@ const sendBookingStatusEmail = async (booking) => {
             <a href="${process.env.CLIENT_URL}/booking" style="background: #d4af37; color: #000; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">Book Again</a>
           </div>
           `}
-          <p style="color: #888; text-align: center; font-size: 14px;">
-            19 Ali Amer, Nasr City, Cairo — +20 10 2056 4047
-          </p>
+          <p style="color: #888; text-align: center; font-size: 14px;">19 Ali Amer, Nasr City, Cairo — +20 10 2056 4047</p>
         </div>
       `
     });
@@ -169,10 +161,11 @@ const sendBookingStatusEmail = async (booking) => {
     console.error('Status email error:', error.message);
   }
 };
+
 const sendAdminBookingAlert = async (booking) => {
   try {
-    await transporter.sendMail({
-      from: `"Hanz Nails System" <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+      from: FROM_SYSTEM,
       to: process.env.ADMIN_EMAIL,
       subject: `New Booking — ${booking.userName} | ${booking.service}`,
       html: `
@@ -187,7 +180,7 @@ const sendAdminBookingAlert = async (booking) => {
             <p><strong style="color: #d4af37;">Time:</strong> ${booking.time}</p>
             ${booking.finalPrice > 0 ? `<p><strong style="color: #d4af37;">Price:</strong> ${booking.finalPrice} EGP</p>` : ''}
             ${booking.notes ? `<p><strong style="color: #d4af37;">Notes:</strong> ${booking.notes}</p>` : ''}
-            ${booking.isGuest ? `<p style="color: #f4a261;"><strong>⚠ Guest booking (no account)</strong></p>` : ''}
+            ${booking.isGuest ? `<p style="color: #f4a261;"><strong>Guest booking (no account)</strong></p>` : ''}
           </div>
           <div style="text-align: center;">
             <a href="${process.env.CLIENT_URL}/admin" style="background: #d4af37; color: #000; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">Open Admin Dashboard</a>
@@ -202,8 +195,8 @@ const sendAdminBookingAlert = async (booking) => {
 
 const sendGuestBookingConfirmation = async (booking) => {
   try {
-    await transporter.sendMail({
-      from: `"Hanz Nails Salon" <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+      from: FROM_SALON,
       to: booking.userEmail,
       subject: 'Booking Request Received - Hanz Nails Salon',
       html: `
@@ -222,9 +215,7 @@ const sendGuestBookingConfirmation = async (booking) => {
             <p style="color: #ccc; margin: 0;">Register for a free account to get birthday discounts and booking history!</p>
             <a href="${process.env.CLIENT_URL}/register" style="color: #d4af37;">Register here</a>
           </div>
-          <p style="color: #888; text-align: center; font-size: 14px; margin-top: 20px;">
-            19 Ali Amer, Nasr City, Cairo — +20 10 2056 4047
-          </p>
+          <p style="color: #888; text-align: center; font-size: 14px; margin-top: 20px;">19 Ali Amer, Nasr City, Cairo — +20 10 2056 4047</p>
         </div>
       `
     });
@@ -240,5 +231,5 @@ module.exports = {
   sendBookingConfirmation,
   sendBookingStatusEmail,
   sendGuestBookingConfirmation,
-  sendAdminBookingAlert 
+  sendAdminBookingAlert
 };
