@@ -1,8 +1,8 @@
 const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM_SYSTEM = 'Hanz Nails <onboarding@resend.dev>';
-const FROM_SALON = 'Hanz Nails Salon <onboarding@resend.dev>';
+const FROM_SYSTEM = 'Hanz Nails';
+const FROM_SALON = 'Hanz Nails Bar';
 
 const sendAdminNotification = async (user) => {
   try {
@@ -117,41 +117,61 @@ const sendBookingStatusEmail = async (booking) => {
     const userEmail = booking.userEmail || (booking.user && booking.user.email);
     const userName = booking.userName || (booking.user && booking.user.name);
     const isConfirmed = booking.status === 'confirmed';
+    const isCompleted = booking.status === 'completed';
+
+    let subject, headerColor, headerText, bodyText, extraBlock;
+
+    if (isConfirmed) {
+      subject = 'Your Appointment is Confirmed - Hanz Nails';
+      headerColor = '#4CAF50';
+      headerText = 'Appointment Confirmed!';
+      bodyText = `Hi ${userName}, your appointment has been confirmed. We look forward to seeing you!`;
+      extraBlock = `
+        <div style="background: #2a2a2a; padding: 15px; border-radius: 8px; margin: 20px 0;">
+          <p style="color: #ccc; margin: 0;">Free coffee, iced coffee and matcha awaits you!</p>
+        </div>`;
+    } else if (isCompleted) {
+      subject = 'Thank You for Visiting Hanz Nails!';
+      headerColor = '#d4af37';
+      headerText = 'Thank You for Your Visit!';
+      bodyText = `Hi ${userName}, we hope you absolutely loved your experience at Hanz Nails!`;
+      extraBlock = `
+        <div style="background: #2a2a2a; padding: 25px; border-radius: 8px; margin: 20px 0; text-align: center; border: 1px solid #d4af37;">
+          <p style="color: #d4af37; font-size: 28px; margin: 0 0 10px;">✨</p>
+          <p style="color: #fff; font-size: 16px; margin: 0 0 8px;">We hope you're obsessed with your new look!</p>
+          <p style="color: #ccc; font-size: 14px; margin: 0;">You deserve to feel beautiful every single day. We can't wait to see you again soon.</p>
+        </div>
+        <div style="text-align: center; margin: 20px 0;">
+          <a href="${process.env.CLIENT_URL}/booking" style="background: #d4af37; color: #000; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">Book Your Next Visit</a>
+        </div>`;
+    } else {
+      subject = 'Your Appointment has been Cancelled - Hanz Nails';
+      headerColor = '#f44336';
+      headerText = 'Appointment Cancelled';
+      bodyText = `Hi ${userName}, your appointment has been cancelled. Please contact us to reschedule.`;
+      extraBlock = `
+        <div style="text-align: center; margin: 20px 0;">
+          <a href="${process.env.CLIENT_URL}/booking" style="background: #d4af37; color: #000; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">Book Again</a>
+        </div>`;
+    }
 
     await resend.emails.send({
       from: FROM_SALON,
       to: userEmail,
-      subject: isConfirmed
-        ? 'Your Appointment is Confirmed - Hanz Nails'
-        : 'Your Appointment has been Cancelled - Hanz Nails',
+      subject,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #1a1a1a; color: #fff; padding: 40px; border-radius: 12px;">
           <h1 style="color: #d4af37; text-align: center;">HANZ NAILS</h1>
           <hr style="border-color: #d4af37; margin: 20px 0;">
-          <h2 style="text-align: center; color: ${isConfirmed ? '#4CAF50' : '#f44336'};">
-            ${isConfirmed ? 'Appointment Confirmed!' : 'Appointment Cancelled'}
-          </h2>
-          <p style="color: #ccc; text-align: center;">
-            ${isConfirmed
-              ? `Hi ${userName}, your appointment has been confirmed. We look forward to seeing you!`
-              : `Hi ${userName}, your appointment has been cancelled. Please contact us to reschedule.`
-            }
-          </p>
-          <div style="background: #2a2a2a; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${isConfirmed ? '#4CAF50' : '#f44336'};">
+          <h2 style="text-align: center; color: ${headerColor};">${headerText}</h2>
+          <p style="color: #ccc; text-align: center;">${bodyText}</p>
+          <div style="background: #2a2a2a; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${headerColor};">
             <p><strong style="color: #d4af37;">Service:</strong> ${booking.service}</p>
             <p><strong style="color: #d4af37;">Date:</strong> ${new Date(booking.date).toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
             <p><strong style="color: #d4af37;">Time:</strong> ${booking.time}</p>
             ${booking.finalPrice > 0 ? `<p><strong style="color: #d4af37;">Total:</strong> ${booking.finalPrice} EGP</p>` : ''}
           </div>
-          ${isConfirmed ? `
-          <div style="background: #2a2a2a; padding: 15px; border-radius: 8px; margin: 20px 0;">
-            <p style="color: #ccc;">Free coffee, iced coffee and matcha awaits you!</p>
-          </div>
-          ` : `
-          <div style="text-align: center; margin: 20px 0;">
-            <a href="${process.env.CLIENT_URL}/booking" style="background: #d4af37; color: #000; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">Book Again</a>
-          </div>
-          `}
+          ${extraBlock}
           <p style="color: #888; text-align: center; font-size: 14px;">19 Ali Amer, Nasr City, Cairo — +20 10 2056 4047</p>
         </div>
       `
