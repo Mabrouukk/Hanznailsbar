@@ -43,7 +43,7 @@ export default function Navbar() {
           borderRadius: '20px',
           padding: '6px 18px',
           marginLeft: '24px',
-          fontSize: '1rem',
+          fontSize: '0.5rem',
           boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
           display: 'inline-block',
           letterSpacing: '0.5px',
