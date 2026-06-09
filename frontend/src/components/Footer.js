@@ -80,16 +80,17 @@ export default function Footer() {
         </div>
 
         <div className="footer-map">
-          <iframe
-            title="HANZ Nails Location"
-            src="https://maps.app.goo.gl/97qef5LzXLhd9kk58?g_st=ic"
-            width="100%"
-            height="220"
-            style={{ border: 0 }}
-            allowFullScreen=""
-            loading="lazy"
-          ></iframe>
-        </div>
+  <iframe
+    title="HANZ Nails Location"
+    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3453.1367724879346!2d31.339670775645825!3d30.061613774915017!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14583feb0512dcc7%3A0x326c049df8cc69e8!2sH%C3%84NZ%20Nails%20Bar!5e0!3m2!1sen!2seg!4v1781044856326!5m2!1sen!2seg"
+    width="100%"
+    height="220"
+    style={{ border: 0 }}
+    allowFullScreen=""
+    loading="lazy"
+    referrerPolicy="no-referrer-when-downgrade"
+  ></iframe>
+</div>
 
         <div className="footer-bottom">
           <p>© {new Date().getFullYear()} HÄNZ Nails Bar · hanznailsbar.com · Official Website · All Rights Reserved.</p>
