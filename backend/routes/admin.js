@@ -45,7 +45,7 @@ router.put('/bookings/:id/status', async (req, res) => {
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
 
     // Send email when confirmed or cancelled
-    if (status === 'confirmed' || status === 'cancelled') {
+    if (status === 'confirmed' || status === 'cancelled' || status === 'completed') { 
       const { sendBookingStatusEmail } = require('../utils/emailService');
       sendBookingStatusEmail(booking).catch(err =>
         console.error('Status email error:', err)
