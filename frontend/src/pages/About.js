@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom';
 import './About.css';
 
 const VALUES = [
-  { icon: '✦', title: 'Certified Professionals Only', desc: 'Every technician on our team is certified and experienced. We never compromise on skill or quality.' },
-  { icon: '☕', title: 'Free Beverages', desc: 'Complimentary coffee, iced coffee and matcha with every visit. Because you deserve to be treated from the moment you walk in.' },
-  { icon: '🎂', title: '50% Birthday Discount', desc: 'Register with your birthday and receive an automatic 50% discount code on your special day. Our gift to you.' },
-  { icon: '📱', title: 'Online Booking 24/7', desc: 'Book your appointment anytime, anywhere. Fast, easy and confirmed instantly.' },
+  { icon: '', title: 'Certified Professionals Only', desc: 'Every technician on our team is certified and experienced. We never compromise on skill or quality.' },
+  { icon: '', title: 'Free Beverages', desc: 'Complimentary coffee, iced coffee and matcha with every visit. Because you deserve to be treated from the moment you walk in.' },
+  { icon: '', title: '50% Birthday Discount', desc: 'Register with your birthday and receive an automatic 50% discount code on your special day. Our gift to you.' },
+  { icon: '', title: 'Online Booking 24/7', desc: 'Book your appointment anytime, anywhere. Fast, easy and confirmed instantly.' },
 ];
 
 const FOUNDERS = [
@@ -132,7 +132,7 @@ export default function About() {
         <div className="container">
           <div className="section-title reveal">
             <p>The People Behind HÄNZ</p>
-            <h2>Meet the Founders</h2>
+            <h2>HÄNZ NAILS BOARD MEMBERS</h2>
             <div className="gold-line"></div>
           </div>
           <div className="founders-grid">
