@@ -172,7 +172,7 @@ const sendBookingStatusEmail = async (booking) => {
             ${booking.finalPrice > 0 ? `<p><strong style="color: #d4af37;">Total:</strong> ${booking.finalPrice} EGP</p>` : ''}
           </div>
           ${extraBlock}
-          <p style="color: #888; text-align: center; font-size: 14px;">19 Ali Amer, Nasr City, Cairo — +20 10 2056 4047</p>
+          <p style="color: #888; text-align: center; font-size: 14px;">19 Ali Amer, Nasr City, Cairo /n — +20 10 2056 4047</p>
         </div>
       `
     });
