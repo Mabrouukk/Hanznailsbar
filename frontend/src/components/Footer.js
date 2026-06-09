@@ -82,7 +82,7 @@ export default function Footer() {
         <div className="footer-map">
           <iframe
             title="HANZ Nails Location"
-            src="https://maps.google.com/maps?q=19+Ali+Amer+Street,+Nasr+City,+Cairo,+Egypt&output=embed"
+            src="https://maps.app.goo.gl/97qef5LzXLhd9kk58?g_st=ic"
             width="100%"
             height="220"
             style={{ border: 0 }}
