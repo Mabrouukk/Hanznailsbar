@@ -40,10 +40,10 @@ export default function Services() {
 
           {/* Perks */}
           <div className="perks-row">
-            <div className="perk-item"><span>👑</span> Professional Technicians</div>
-            <div className="perk-item"><span>☕</span> Free Coffee & Matcha</div>
-            <div className="perk-item"><span>🎂</span> 50% Birthday Discount</div>
-            <div className="perk-item"><span>⏰</span> Online Booking</div>
+            <div className="perk-item"><span></span> Professional Technicians</div>
+            <div className="perk-item"><span></span> Free Coffee & Matcha</div>
+            <div className="perk-item"><span></span> 50% Birthday Discount</div>
+            <div className="perk-item"><span></span> Online Booking</div>
           </div>
 
           {/* Accordion */}
