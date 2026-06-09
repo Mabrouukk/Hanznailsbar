@@ -7,12 +7,11 @@ export default function Footer() {
     <footer className="footer">
       <div className="container">
         <div className="footer-grid">
-          {/* Brand */}
           <div className="footer-brand">
             <div className="footer-logo">
               <span className="logo-icon">💅</span>
               <div>
-                <h3>HANZ NAILS</h3>
+                <h3>HÄNZ NAILS</h3>
                 <p>The Art of Timeless Polish</p>
               </div>
             </div>
@@ -35,19 +34,18 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Quick Links */}
           <div className="footer-col">
             <h4>Quick Links</h4>
             <ul>
               <li><Link to="/">Home</Link></li>
               <li><Link to="/services">Our Services</Link></li>
               <li><Link to="/booking">Book Appointment</Link></li>
+              <li><Link to="/about">About Us</Link></li>
               <li><Link to="/register">Register</Link></li>
               <li><Link to="/login">Login</Link></li>
             </ul>
           </div>
 
-          {/* Hours */}
           <div className="footer-col">
             <h4>Opening Hours</h4>
             <ul className="hours-list">
@@ -55,7 +53,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Contact */}
           <div className="footer-col">
             <h4>Contact Us</h4>
             <ul className="contact-list">
@@ -76,19 +73,26 @@ export default function Footer() {
                 <a href="mailto:hanznailssalon@gmail.com">hanznailssalon@gmail.com</a>
               </li>
             </ul>
-            {/* Google Maps */}
-            <a
-              href="https://maps.google.com/?q=19+Ali+Amer,+Nasr+City,+Cairo,+Egypt&search=Hanz+Nails+Salon"
-              target="_blank" rel="noreferrer"
-              className="btn btn-outline map-btn"
-            >
-              📍 View on Map
+            <a href="https://maps.app.goo.gl/NNRYdS7a87aFaNta9" target="_blank" rel="noreferrer" className="btn btn-outline map-btn">
+              📍 View on Google Maps
             </a>
           </div>
         </div>
 
+        <div className="footer-map">
+          <iframe
+            title="HANZ Nails Location"
+            src="https://maps.google.com/maps?q=19+Ali+Amer+Street,+Nasr+City,+Cairo,+Egypt&output=embed"
+            width="100%"
+            height="220"
+            style={{ border: 0 }}
+            allowFullScreen=""
+            loading="lazy"
+          ></iframe>
+        </div>
+
         <div className="footer-bottom">
-          <p>© {new Date().getFullYear()} Hanz Nails Salon. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} HÄNZ Nails Bar · hanznailsbar.com · Official Website · All Rights Reserved.</p>
           <p className="footer-tagline">The Art of Timeless Polish 💅</p>
         </div>
       </div>
