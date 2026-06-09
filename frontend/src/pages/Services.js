@@ -66,7 +66,7 @@ export default function Services() {
                         <div key={ii} className="accordion-service-row">
                           <div className="accordion-service-info">
                             <span className="accordion-service-name">{item.name}</span>
-                            <span className="accordion-service-duration">⏱ {item.duration}</span>
+                            <span className="accordion-service-duration"> {item.duration}</span>
                           </div>
                           <div className="accordion-service-right">
                             <span className="accordion-service-price">{item.price} EGP</span>
