@@ -38,11 +38,6 @@ category: "Nail Services",
     ]
   }
 ];
-
-
-// Return prices increased by 25%
-
-
 router.get('/', (req, res) => {
   res.json(services);
 });
