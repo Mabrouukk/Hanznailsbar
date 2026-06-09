@@ -1,8 +1,8 @@
 const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM_SYSTEM = 'Hanz Nails <onboarding@resend.dev>';
-const FROM_SALON = 'Hanz Nails Salon <onboarding@resend.dev>';
+const FROM_SYSTEM = 'Hanz Nails <noreply@hanznailsbar.com>';
+const FROM_SALON = 'Hanz Nails Salon <noreply@hanznailsbar.com>';
 
 const sendAdminNotification = async (user) => {
   try {
