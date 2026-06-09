@@ -82,7 +82,7 @@ export default function About() {
             </div>
             <div className="about-story-visual">
               <div className="about-visual-card">
-                <div className="about-visual-icon">💅</div>
+                <div className="about-visual-icon"></div>
                 <h3>HÄNZ NAILS BAR</h3>
                 <p>Nasr City, Cairo</p>
                 <div className="about-visual-stats">
