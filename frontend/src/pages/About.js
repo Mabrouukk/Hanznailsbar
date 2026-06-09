@@ -26,7 +26,7 @@ const FOUNDERS = [
     name: 'Hana Elmasry',
         role: 'Branch Manager',
         desc: 'Hana oversees the day-to-day operations of our branch, ensuring that every guest receives the highest level of service and care.',
-    initial: 'M',
+    initial: 'H',
   },
 ];
 
