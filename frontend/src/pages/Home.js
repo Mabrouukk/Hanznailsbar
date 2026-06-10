@@ -150,7 +150,7 @@ export default function Home() {
             <div className="info-card card reveal">
               <h3>⏰ Opening Hours</h3>
               <div className="hours-table">
-                <div className="hour-row"><span>all the week</span><span>11:00 AM – 10:00 PM</span></div>
+                <div className="hour-row"><span>all the week</span><span>11:00 AM – 9:00 PM</span></div>
               </div>
             </div>
             <div className="info-card card reveal">
