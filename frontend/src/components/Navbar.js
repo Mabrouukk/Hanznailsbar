@@ -48,7 +48,7 @@ export default function Navbar() {
           display: 'inline-block',
           letterSpacing: '0.5px',
         }}>
-          Sign up now and get 15% off your service
+         Get 15 % Off Now! 
         </div>
 
         <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
