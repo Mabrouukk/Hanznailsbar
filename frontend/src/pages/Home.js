@@ -179,12 +179,7 @@ export default function Home() {
           <div className="cta-inner reveal">
             <h2>Ready to Look & Feel Amazing?</h2>
             <p>Book your appointment online in seconds — available 24/7</p>
-            <button
-              className="btn btn-gold btn-lg"
-              onClick={() => window.open('https://www.hanznailsbar.com/booking', '_blank')}
-            >
-              Book Your Appointment Now
-            </button>
+            <Link to="https://www.hanznailsbar.com/booking" className="btn btn-gold btn-lg">Book Your Appointment Now</Link>
           </div>
         </div>
       </section>
