@@ -392,7 +392,7 @@ export default function Booking() {
               </div>
               <div className="sidebar-card card">
                 <h4>⏰ Opening Hours</h4>
-                <p style={{fontSize:'13px', color:'var(--gray)'}}>All week: 11AM–10PM</p>
+                <p style={{fontSize:'13px', color:'var(--gray)'}}>All week: 11AM–9:00PM</p>
               </div>
             </div>
           </div>
