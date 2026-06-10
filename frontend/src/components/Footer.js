@@ -16,7 +16,7 @@ export default function Footer() {
               </div>
             </div>
             <p className="footer-desc">
-              Cairo's premier nail & lash salon. We blend artistry with precision to deliver beauty experiences that last.
+              Cairo's premier nail bar. We blend artistry with precision to deliver beauty experiences that last.
             </p>
             <div className="social-links">
               <a href="https://www.facebook.com/hanznailssalon" target="_blank" rel="noreferrer" aria-label="Facebook" className="social-btn">
