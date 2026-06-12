@@ -203,37 +203,52 @@ export default function AdminDashboard() {
     } catch { toast.error('Failed to remove loan'); }
   };
 
-  const buildTree = (emps, parentId = null) =>
-    emps
+  const buildTree = (emps, parentId = null) => {
+    const pidStr = parentId ? String(parentId) : null;
+    return emps
       .filter(e => {
         const rt = e.reportsTo ? String(e.reportsTo._id || e.reportsTo) : null;
-        return rt === (parentId ? String(parentId) : null);
+        return rt === pidStr;
       })
-      .map(e => ({ ...e, children: buildTree(emps, e._id) }));
+      .map(e => ({ ...e, children: buildTree(emps, String(e._id)) }));
+  };
 
-  const renderTree = (nodes, depth = 0) =>
-    nodes.map(node => (
-      <div key={node._id} style={{ paddingLeft: depth > 0 ? '28px' : '0', marginBottom: '8px' }}>
-        <div style={{
-          background: 'var(--dark-3)',
-          border: `1px solid ${depth === 0 ? 'rgba(212,175,55,0.6)' : 'var(--dark-4)'}`,
-          borderLeft: depth > 0 ? '3px solid rgba(212,175,55,0.35)' : undefined,
-          borderRadius: '10px', padding: '12px 18px',
-          display: 'flex', alignItems: 'center', gap: '12px'
-        }}>
-          <div>
-            <strong style={{ color: 'var(--white)', display: 'block', fontSize: '14px' }}>{node.name}</strong>
-            <span style={{ color: 'var(--gold)', fontSize: '12px', letterSpacing: '0.5px' }}>{node.role}</span>
-          </div>
-          <span style={{ marginLeft: 'auto', color: 'var(--gray)', fontSize: '12px' }}>{node.salary?.toLocaleString()} EGP/mo</span>
+  const renderOrgNode = (node) => (
+    <div className="org-node-container" key={node._id}>
+      <div className="org-card-pro">
+        <div className="org-card-top-bar" />
+        <div className="org-card-body">
+          <span className="org-card-name">{node.name}</span>
+          <span className="org-card-role">{node.role}</span>
+          <span className="org-card-salary">{node.salary?.toLocaleString()} EGP/mo</span>
         </div>
-        {node.children?.length > 0 && (
-          <div style={{ paddingLeft: '14px', borderLeft: '1px solid rgba(212,175,55,0.12)', marginLeft: '18px', marginTop: '4px' }}>
-            {renderTree(node.children, depth + 1)}
-          </div>
-        )}
       </div>
-    ));
+      {node.children?.length > 0 && (
+        <>
+          <div className="org-connector-down" />
+          <div className="org-children-row">
+            {node.children.map(child => (
+              <div className="org-child-wrap" key={child._id}>
+                {renderOrgNode(child)}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+
+  const renderOrgChart = (emps) => {
+    const roots = buildTree(emps);
+    if (!roots.length) return <p style={{color:'var(--gray)', fontSize:'13px'}}>No top-level employees found. Make sure at least one employee has no "Reports To".</p>;
+    return (
+      <div className="org-chart-root">
+        <div style={{display:'flex', justifyContent:'center', flexWrap:'wrap', gap:'24px'}}>
+          {roots.map(node => renderOrgNode(node))}
+        </div>
+      </div>
+    );
+  };
 
   const sendBroadcast = async () => {
     if (!broadcast.subject.trim() || !broadcast.message.trim()) return toast.error('Subject and message are required');
@@ -873,9 +888,7 @@ export default function AdminDashboard() {
                   {employees.length > 0 && (
                     <div>
                       <h4 style={{fontFamily:'var(--font-serif)', color:'var(--gold)', marginBottom:'16px', fontSize:'18px'}}>Org Chart</h4>
-                      <div style={{maxWidth:'680px'}}>
-                        {renderTree(buildTree(employees))}
-                      </div>
+                      {renderOrgChart(employees)}
                     </div>
                   )}
                 </div>
@@ -978,10 +991,10 @@ export default function AdminDashboard() {
 
               {/* ── Org Chart ── */}
               {staffView === 'chart' && (
-                <div style={{maxWidth:'700px'}}>
+                <div>
                   {employees.length === 0
                     ? <p style={{color:'var(--gray)', fontSize:'13px'}}>No employees yet.</p>
-                    : renderTree(buildTree(employees))
+                    : renderOrgChart(employees)
                   }
                 </div>
               )}
