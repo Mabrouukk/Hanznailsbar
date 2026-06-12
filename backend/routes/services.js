@@ -56,3 +56,4 @@ router.get('/', async (req, res) => {
 });
 
 module.exports = router;
+module.exports.SEED_SERVICES = SEED_SERVICES;

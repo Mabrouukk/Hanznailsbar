@@ -105,7 +105,11 @@ router.delete('/bookings/:id', async (req, res) => {
 router.get('/services', async (req, res) => {
   try {
     const Service = require('../models/Service');
-    const services = await Service.find().sort({ category: 1, name: 1 });
+    let services = await Service.find().sort({ category: 1, name: 1 });
+    if (services.length === 0) {
+      const { SEED_SERVICES } = require('./services');
+      services = await Service.insertMany(SEED_SERVICES);
+    }
     res.json(services);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
