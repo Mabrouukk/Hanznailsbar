@@ -125,43 +125,54 @@ section { overflow: hidden; }
   font-size: 12px; letter-spacing: 1px; border: 1px solid rgba(212,175,55,0.3);
 }
 
-/* Gallery */
-.gallery-section { background: var(--black); }
-.gallery-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  grid-template-rows: 280px 280px;
-  gap: 12px;
+/* Our Salon */
+.salon-section {
+  position: relative; min-height: 600px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  overflow: hidden; padding: 100px 24px;
 }
-.gallery-item-large { grid-row: span 2; }
-.gallery-item {
-  position: relative; overflow: hidden; border-radius: 12px;
-  background: var(--dark-2);
-}
-.gallery-item img {
-  width: 100%; height: 100%; object-fit: cover;
-  transition: transform 0.5s ease;
-}
-.gallery-item:hover img { transform: scale(1.06); }
-.gallery-overlay {
+.salon-bg {
   position: absolute; inset: 0;
-  background: rgba(0,0,0,0.4);
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0; transition: opacity 0.3s ease;
+  background-size: cover; background-position: center;
+  transform: scale(1.05);
+  transition: transform 8s ease;
 }
-.gallery-item:hover .gallery-overlay { opacity: 1; }
-.gallery-overlay span {
-  color: var(--gold); font-size: 12px; letter-spacing: 3px;
-  text-transform: uppercase; border: 1px solid var(--gold);
-  padding: 8px 20px; border-radius: 4px;
+.salon-section:hover .salon-bg { transform: scale(1); }
+.salon-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.75) 100%);
 }
-@media (max-width: 768px) {
-  .gallery-grid {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto;
-  }
-  .gallery-item-large { grid-row: span 1; grid-column: span 2; height: 260px; }
-  .gallery-item { height: 200px; }
+.salon-content {
+  position: relative; z-index: 1; text-align: center; max-width: 600px;
+}
+.salon-label {
+  font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 16px;
+}
+.salon-content h2 {
+  font-family: var(--font-serif); font-size: clamp(36px, 5vw, 56px);
+  color: var(--white); margin-bottom: 0;
+}
+.salon-desc {
+  color: rgba(255,255,255,0.7); font-size: 15px; line-height: 1.8;
+  margin-bottom: 32px;
+}
+.salon-thumbnails {
+  position: relative; z-index: 1;
+  display: flex; gap: 12px; margin-top: 48px;
+}
+.salon-thumb {
+  width: 160px; height: 100px; border-radius: 10px;
+  background-size: cover; background-position: center;
+  border: 1px solid rgba(212,175,55,0.3);
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+.salon-thumb:hover { transform: translateY(-4px); border-color: var(--gold); }
+@media (max-width: 600px) {
+  .salon-section { padding: 80px 24px; }
+  .salon-thumbnails { gap: 8px; }
+  .salon-thumb { width: 90px; height: 65px; border-radius: 8px; }
 }
 
 /* Why Section */

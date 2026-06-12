@@ -102,35 +102,21 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Gallery */}
-      <section className="section gallery-section" ref={addRef}>
-        <div className="container">
-          <div className="section-title reveal">
-            <p>Our Work</p>
-            <h2>The Art We Create</h2>
-            <div className="gold-line"></div>
-          </div>
-          <div className="gallery-grid reveal">
-            <div className="gallery-item gallery-item-large">
-              <img src="/gallery/img1.jpg" alt="Nail art by HÄNZ Nails" loading="lazy" />
-              <div className="gallery-overlay"><span>View</span></div>
-            </div>
-            <div className="gallery-item">
-              <img src="/gallery/img2.jpg" alt="Nail art by HÄNZ Nails" loading="lazy" />
-              <div className="gallery-overlay"><span>View</span></div>
-            </div>
-            <div className="gallery-item">
-              <img src="/gallery/img3.jpg" alt="Nail art by HÄNZ Nails" loading="lazy" />
-              <div className="gallery-overlay"><span>View</span></div>
-            </div>
-            <div className="gallery-item">
-              <img src="/gallery/img4.jpg" alt="Nail art by HÄNZ Nails" loading="lazy" />
-              <div className="gallery-overlay"><span>View</span></div>
-            </div>
-          </div>
-          <div style={{textAlign:'center', marginTop:'40px'}}>
-            <a href="https://www.instagram.com/hanz_nailbar" target="_blank" rel="noreferrer" className="btn btn-outline">See More on Instagram</a>
-          </div>
+      {/* Our Salon */}
+      <section className="salon-section" ref={addRef}>
+        <div className="salon-bg" style={{backgroundImage: 'url(/gallery/img1.jpg)'}}></div>
+        <div className="salon-overlay"></div>
+        <div className="salon-content reveal">
+          <p className="salon-label">Where Beauty Happens</p>
+          <h2>Step Into Our World</h2>
+          <div className="gold-line" style={{margin:'20px auto'}}></div>
+          <p className="salon-desc">A space designed for you to relax, unwind, and leave feeling beautiful. Located in the heart of Nasr City, Cairo.</p>
+          <Link to="/booking" className="btn btn-gold">Reserve Your Spot</Link>
+        </div>
+        <div className="salon-thumbnails">
+          <div className="salon-thumb" style={{backgroundImage: 'url(/gallery/img2.jpg)'}}></div>
+          <div className="salon-thumb" style={{backgroundImage: 'url(/gallery/img3.jpg)'}}></div>
+          <div className="salon-thumb" style={{backgroundImage: 'url(/gallery/img4.jpg)'}}></div>
         </div>
       </section>
 
