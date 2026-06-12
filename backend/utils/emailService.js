@@ -244,6 +244,31 @@ const sendGuestBookingConfirmation = async (booking) => {
   }
 };
 
+const sendPasswordResetEmail = async (user, resetUrl) => {
+  try {
+    await resend.emails.send({
+      from: FROM_SYSTEM,
+      to: user.email,
+      subject: 'Reset Your Password - Hanz Nails',
+      html: `
+        <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; background: #1a1a1a; color: #fff; padding: 40px; border-radius: 12px;">
+          <h1 style="color: #d4af37; text-align: center; font-size: 28px; letter-spacing: 4px;">HÄNZ NAILS</h1>
+          <hr style="border-color: #d4af37; margin: 20px 0;">
+          <h2 style="color: #fff;">Password Reset Request</h2>
+          <p style="color: #ccc;">Hi ${user.name}, we received a request to reset your password.</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetUrl}" style="background: #d4af37; color: #000; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Reset My Password</a>
+          </div>
+          <p style="color: #888; font-size: 13px;">This link expires in 1 hour. If you did not request a password reset, you can safely ignore this email.</p>
+          <p style="color: #888; text-align: center; font-size: 13px; margin-top: 30px;">19 Ali Amer, Nasr City, Cairo — +20 10 2056 4047</p>
+        </div>
+      `
+    });
+  } catch (error) {
+    console.error('Password reset email error:', error.message);
+  }
+};
+
 module.exports = {
   sendAdminNotification,
   sendWelcomeEmail,
@@ -251,5 +276,6 @@ module.exports = {
   sendBookingConfirmation,
   sendBookingStatusEmail,
   sendGuestBookingConfirmation,
-  sendAdminBookingAlert
+  sendAdminBookingAlert,
+  sendPasswordResetEmail
 };

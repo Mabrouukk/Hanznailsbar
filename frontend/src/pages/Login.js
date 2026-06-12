@@ -52,6 +52,9 @@ export default function Login() {
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
+          <p className="auth-link" style={{marginTop:'12px'}}>
+            <Link to="/forgot-password" style={{color:'var(--gray)', fontSize:'12px'}}>Forgot your password?</Link>
+          </p>
           <p className="auth-link">
             Don't have an account? <Link to="/register">Register here</Link>
           </p>
