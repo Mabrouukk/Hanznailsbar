@@ -59,7 +59,8 @@
 .hamburger span.open:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
 
 @media (max-width: 768px) {
-  .hamburger { display: flex; }
+  .hamburger { display: flex; order: -1; }
+  .navbar-brand { order: 2; }
   .navbar-menu {
     position: fixed; top: 0; right: -100%; bottom: 0;
     width: 280px; background: var(--dark-2);
