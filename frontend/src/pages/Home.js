@@ -102,6 +102,38 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Gallery */}
+      <section className="section gallery-section" ref={addRef}>
+        <div className="container">
+          <div className="section-title reveal">
+            <p>Our Work</p>
+            <h2>The Art We Create</h2>
+            <div className="gold-line"></div>
+          </div>
+          <div className="gallery-grid reveal">
+            <div className="gallery-item gallery-item-large">
+              <img src="/gallery/img1.jpg" alt="Nail art by HÄNZ Nails" loading="lazy" />
+              <div className="gallery-overlay"><span>View</span></div>
+            </div>
+            <div className="gallery-item">
+              <img src="/gallery/img2.jpg" alt="Nail art by HÄNZ Nails" loading="lazy" />
+              <div className="gallery-overlay"><span>View</span></div>
+            </div>
+            <div className="gallery-item">
+              <img src="/gallery/img3.jpg" alt="Nail art by HÄNZ Nails" loading="lazy" />
+              <div className="gallery-overlay"><span>View</span></div>
+            </div>
+            <div className="gallery-item">
+              <img src="/gallery/img4.jpg" alt="Nail art by HÄNZ Nails" loading="lazy" />
+              <div className="gallery-overlay"><span>View</span></div>
+            </div>
+          </div>
+          <div style={{textAlign:'center', marginTop:'40px'}}>
+            <a href="https://www.instagram.com/hanz_nailbar" target="_blank" rel="noreferrer" className="btn btn-outline">See More on Instagram</a>
+          </div>
+        </div>
+      </section>
+
       {/* Why Hanz Nails */}
       <section className="section why-section" ref={addRef}>
         <div className="container">
