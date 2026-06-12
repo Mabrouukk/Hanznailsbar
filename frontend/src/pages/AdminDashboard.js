@@ -35,6 +35,8 @@ export default function AdminDashboard() {
   const [newService, setNewService] = useState({ name: '', price: '', category: 'Nail Services' });
   const [blockedSlots, setBlockedSlots] = useState([]);
   const [blockForm, setBlockForm] = useState({ date: '', allDay: true, times: [], reason: '' });
+  const [todayOnly, setTodayOnly] = useState(false);
+  const [sortBy, setSortBy] = useState('newest');
 
   useEffect(() => {
     Promise.all([
@@ -147,10 +149,23 @@ export default function AdminDashboard() {
     } catch { toast.error('Failed to unblock'); }
   };
 
-  const filteredBookings = bookings.filter(b =>
-    b.userName?.toLowerCase().includes(search.toLowerCase()) ||
-    b.service?.toLowerCase().includes(search.toLowerCase())
-  );
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  const filteredBookings = bookings
+    .filter(b => {
+      const matchSearch = b.userName?.toLowerCase().includes(search.toLowerCase()) ||
+        b.service?.toLowerCase().includes(search.toLowerCase());
+      const matchToday = todayOnly
+        ? new Date(b.date).toISOString().split('T')[0] === todayStr
+        : true;
+      return matchSearch && matchToday;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'oldest') return new Date(a.date) - new Date(b.date);
+      if (sortBy === 'name') return (a.userName || '').localeCompare(b.userName || '');
+      if (sortBy === 'status') return (a.status || '').localeCompare(b.status || '');
+      return new Date(b.date) - new Date(a.date); // newest (default)
+    });
   const filteredUsers = users.filter(u =>
     u.name?.toLowerCase().includes(search.toLowerCase()) ||
     u.email?.toLowerCase().includes(search.toLowerCase())
@@ -238,6 +253,32 @@ export default function AdminDashboard() {
           {/* Bookings */}
           {tab === 1 && (
             <div>
+            <div style={{display:'flex', alignItems:'center', gap:'10px', marginBottom:'16px', flexWrap:'wrap'}}>
+              <button
+                className={`admin-tab ${!todayOnly ? 'active' : ''}`}
+                style={{padding:'8px 18px', fontSize:'12px'}}
+                onClick={() => setTodayOnly(false)}
+              >All</button>
+              <button
+                className={`admin-tab ${todayOnly ? 'active' : ''}`}
+                style={{padding:'8px 18px', fontSize:'12px'}}
+                onClick={() => setTodayOnly(true)}
+              >Today</button>
+              <select
+                className="status-select"
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value)}
+                style={{marginLeft:'4px'}}
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="name">Name A–Z</option>
+                <option value="status">Status</option>
+              </select>
+              <span style={{marginLeft:'auto', color:'var(--gray)', fontSize:'12px'}}>
+                {filteredBookings.length} booking{filteredBookings.length !== 1 ? 's' : ''}
+              </span>
+            </div>
             <div style={{display:'flex', justifyContent:'flex-end', marginBottom:'16px'}}>
               <button className="btn-export" onClick={() => downloadCSV(
                 filteredBookings.map(b => ({
