@@ -206,6 +206,80 @@ router.post('/email/broadcast', async (req, res) => {
   }
 });
 
+// ── Employees ────────────────────────────────────────────────────────────────
+
+router.get('/employees', async (_req, res) => {
+  try {
+    const Employee = require('../models/Employee');
+    const list = await Employee.find({ active: true }).populate('reportsTo', 'name role').sort({ name: 1 });
+    res.json(list);
+  } catch { res.status(500).json({ message: 'Server error' }); }
+});
+
+router.post('/employees', async (req, res) => {
+  try {
+    const Employee = require('../models/Employee');
+    const { name, role, phone, salary, reportsTo } = req.body;
+    if (!name || !role || !salary) return res.status(400).json({ message: 'Name, role and salary are required' });
+    const emp = await Employee.create({ name, role, phone: phone || '', salary: Number(salary), reportsTo: reportsTo || null });
+    const populated = await Employee.findById(emp._id).populate('reportsTo', 'name role');
+    res.status(201).json(populated);
+  } catch { res.status(500).json({ message: 'Server error' }); }
+});
+
+router.put('/employees/:id', async (req, res) => {
+  try {
+    const Employee = require('../models/Employee');
+    const { salary, role, phone, reportsTo } = req.body;
+    const patch = {};
+    if (salary   !== undefined) patch.salary    = Number(salary);
+    if (role     !== undefined) patch.role      = role;
+    if (phone    !== undefined) patch.phone     = phone;
+    if (reportsTo !== undefined) patch.reportsTo = reportsTo || null;
+    const emp = await Employee.findByIdAndUpdate(req.params.id, patch, { new: true }).populate('reportsTo', 'name role');
+    if (!emp) return res.status(404).json({ message: 'Employee not found' });
+    res.json(emp);
+  } catch { res.status(500).json({ message: 'Server error' }); }
+});
+
+router.delete('/employees/:id', async (req, res) => {
+  try {
+    const Employee = require('../models/Employee');
+    await Employee.findByIdAndUpdate(req.params.id, { active: false });
+    res.json({ message: 'Employee removed' });
+  } catch { res.status(500).json({ message: 'Server error' }); }
+});
+
+// ── Loans ─────────────────────────────────────────────────────────────────────
+
+router.get('/loans', async (req, res) => {
+  try {
+    const Loan = require('../models/Loan');
+    const filter = req.query.month ? { month: req.query.month } : {};
+    const loans = await Loan.find(filter).populate('employee', 'name role').sort({ date: -1 });
+    res.json(loans);
+  } catch { res.status(500).json({ message: 'Server error' }); }
+});
+
+router.post('/loans', async (req, res) => {
+  try {
+    const Loan = require('../models/Loan');
+    const { employee, amount, reason, month } = req.body;
+    if (!employee || !amount || !month) return res.status(400).json({ message: 'Employee, amount and month are required' });
+    const loan = await Loan.create({ employee, amount: Number(amount), reason: reason || '', month });
+    const populated = await Loan.findById(loan._id).populate('employee', 'name role');
+    res.status(201).json(populated);
+  } catch { res.status(500).json({ message: 'Server error' }); }
+});
+
+router.delete('/loans/:id', async (req, res) => {
+  try {
+    const Loan = require('../models/Loan');
+    await Loan.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Loan deleted' });
+  } catch { res.status(500).json({ message: 'Server error' }); }
+});
+
 // @GET /api/admin/blocked-slots
 router.get('/blocked-slots', async (_req, res) => {
   try {

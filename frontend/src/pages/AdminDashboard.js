@@ -5,7 +5,7 @@ import './AdminDashboard.css';
 
 const API = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
-const TABS = ['Overview', 'Bookings', 'Customers', 'Prices', 'Offer', 'Schedule', 'Broadcast'];
+const TABS = ['Overview', 'Bookings', 'Customers', 'Prices', 'Offer', 'Schedule', 'Broadcast', 'Staff'];
 
 const ALL_SLOTS = ['11:00 AM','12:30 PM','2:00 PM','3:30 PM','5:00 PM','6:30 PM','8:00 PM'];
 
@@ -40,6 +40,13 @@ export default function AdminDashboard() {
   const [broadcast, setBroadcast] = useState({ subject: '', message: '' });
   const [broadcastSending, setBroadcastSending] = useState(false);
   const [broadcastResult, setBroadcastResult] = useState(null);
+  const [employees, setEmployees] = useState([]);
+  const [loans, setLoans] = useState([]);
+  const [payrollMonth, setPayrollMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [staffView, setStaffView] = useState('employees');
+  const [newEmployee, setNewEmployee] = useState({ name: '', role: '', phone: '', salary: '', reportsTo: '' });
+  const [newLoan, setNewLoan] = useState({ employeeId: '', amount: '', reason: '' });
+  const [editingSalary, setEditingSalary] = useState({});
 
   useEffect(() => {
     Promise.all([
@@ -48,8 +55,9 @@ export default function AdminDashboard() {
       axios.get(`${API}/admin/users`),
       axios.get(`${API}/admin/services`),
       axios.get(`${API}/admin/settings`),
-      axios.get(`${API}/admin/blocked-slots`)
-    ]).then(([s, b, u, sv, st, bs]) => {
+      axios.get(`${API}/admin/blocked-slots`),
+      axios.get(`${API}/admin/employees`),
+    ]).then(([s, b, u, sv, st, bs, em]) => {
       setStats(s.data);
       setBookings(b.data);
       setUsers(u.data);
@@ -57,9 +65,18 @@ export default function AdminDashboard() {
       setOfferSettings(st.data);
       setOfferInput(st.data.offerPercentage);
       setBlockedSlots(bs.data);
+      setEmployees(em.data);
     }).catch(() => toast.error('Failed to load data'))
     .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (tab === 7) {
+      axios.get(`${API}/admin/loans?month=${payrollMonth}`)
+        .then(r => setLoans(r.data))
+        .catch(() => setLoans([]));
+    }
+  }, [tab, payrollMonth]);
 
   const updateStatus = async (id, status) => {
     try {
@@ -125,6 +142,84 @@ export default function AdminDashboard() {
       toast.success('User deleted');
     } catch { toast.error('Failed to delete'); }
   };
+
+  const addEmployee = async () => {
+    if (!newEmployee.name.trim() || !newEmployee.role.trim() || !newEmployee.salary) return toast.error('Name, role and salary are required');
+    try {
+      const res = await axios.post(`${API}/admin/employees`, newEmployee);
+      setEmployees(prev => [...prev, res.data].sort((a,b) => a.name.localeCompare(b.name)));
+      setNewEmployee({ name: '', role: '', phone: '', salary: '', reportsTo: '' });
+      toast.success('Employee added');
+    } catch { toast.error('Failed to add employee'); }
+  };
+
+  const deleteEmployee = async (id) => {
+    if (!window.confirm('Remove this employee?')) return;
+    try {
+      await axios.delete(`${API}/admin/employees/${id}`);
+      setEmployees(prev => prev.filter(e => e._id !== id));
+      toast.success('Employee removed');
+    } catch { toast.error('Failed to remove'); }
+  };
+
+  const saveSalary = async (id, salary) => {
+    try {
+      const res = await axios.put(`${API}/admin/employees/${id}`, { salary });
+      setEmployees(prev => prev.map(e => e._id === id ? res.data : e));
+      setEditingSalary(prev => { const n = {...prev}; delete n[id]; return n; });
+      toast.success('Salary updated');
+    } catch { toast.error('Failed to update salary'); }
+  };
+
+  const addLoan = async () => {
+    if (!newLoan.employeeId || !newLoan.amount) return toast.error('Select employee and enter amount');
+    try {
+      const res = await axios.post(`${API}/admin/loans`, { employee: newLoan.employeeId, amount: newLoan.amount, reason: newLoan.reason, month: payrollMonth });
+      setLoans(prev => [...prev, res.data]);
+      setNewLoan({ employeeId: '', amount: '', reason: '' });
+      toast.success('Loan recorded');
+    } catch { toast.error('Failed to add loan'); }
+  };
+
+  const deleteLoan = async (id) => {
+    try {
+      await axios.delete(`${API}/admin/loans/${id}`);
+      setLoans(prev => prev.filter(l => l._id !== id));
+      toast.success('Loan removed');
+    } catch { toast.error('Failed to remove loan'); }
+  };
+
+  const buildTree = (emps, parentId = null) =>
+    emps
+      .filter(e => {
+        const rt = e.reportsTo ? String(e.reportsTo._id || e.reportsTo) : null;
+        return rt === (parentId ? String(parentId) : null);
+      })
+      .map(e => ({ ...e, children: buildTree(emps, e._id) }));
+
+  const renderTree = (nodes, depth = 0) =>
+    nodes.map(node => (
+      <div key={node._id} style={{ paddingLeft: depth > 0 ? '28px' : '0', marginBottom: '8px' }}>
+        <div style={{
+          background: 'var(--dark-3)',
+          border: `1px solid ${depth === 0 ? 'rgba(212,175,55,0.6)' : 'var(--dark-4)'}`,
+          borderLeft: depth > 0 ? '3px solid rgba(212,175,55,0.35)' : undefined,
+          borderRadius: '10px', padding: '12px 18px',
+          display: 'flex', alignItems: 'center', gap: '12px'
+        }}>
+          <div>
+            <strong style={{ color: 'var(--white)', display: 'block', fontSize: '14px' }}>{node.name}</strong>
+            <span style={{ color: 'var(--gold)', fontSize: '12px', letterSpacing: '0.5px' }}>{node.role}</span>
+          </div>
+          <span style={{ marginLeft: 'auto', color: 'var(--gray)', fontSize: '12px' }}>{node.salary?.toLocaleString()} EGP/mo</span>
+        </div>
+        {node.children?.length > 0 && (
+          <div style={{ paddingLeft: '14px', borderLeft: '1px solid rgba(212,175,55,0.12)', marginLeft: '18px', marginTop: '4px' }}>
+            {renderTree(node.children, depth + 1)}
+          </div>
+        )}
+      </div>
+    ));
 
   const sendBroadcast = async () => {
     if (!broadcast.subject.trim() || !broadcast.message.trim()) return toast.error('Subject and message are required');
@@ -628,6 +723,194 @@ export default function AdminDashboard() {
                     <strong style={{display:'block', fontSize:'28px', color:'var(--gold)'}}>{broadcastResult.total}</strong>
                     <span style={{fontSize:'12px', color:'var(--gray)', textTransform:'uppercase', letterSpacing:'0.5px'}}>Total</span>
                   </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Staff */}
+          {tab === 7 && (
+            <div>
+              {/* Sub-nav */}
+              <div style={{display:'flex', gap:'8px', marginBottom:'24px'}}>
+                {['employees','payroll','chart'].map(v => (
+                  <button key={v} className={`admin-tab ${staffView===v?'active':''}`}
+                    style={{padding:'8px 20px', fontSize:'12px', textTransform:'capitalize'}}
+                    onClick={() => setStaffView(v)}>
+                    {v === 'chart' ? 'Org Chart' : v.charAt(0).toUpperCase() + v.slice(1)}
+                  </button>
+                ))}
+              </div>
+
+              {/* ── Employees ── */}
+              {staffView === 'employees' && (
+                <div>
+                  {/* Add form */}
+                  <div className="card" style={{padding:'20px', marginBottom:'24px', display:'flex', gap:'12px', flexWrap:'wrap', alignItems:'flex-end'}}>
+                    {[
+                      {label:'Name', key:'name', placeholder:'Full name', width:'160px'},
+                      {label:'Role', key:'role', placeholder:'e.g. Nail Technician', width:'160px'},
+                      {label:'Phone', key:'phone', placeholder:'+20...', width:'140px'},
+                      {label:'Salary (EGP)', key:'salary', placeholder:'0', width:'110px', type:'number'},
+                    ].map(f => (
+                      <div key={f.key} style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                        <label style={{fontSize:'11px', color:'var(--gray)', letterSpacing:'0.5px', textTransform:'uppercase'}}>{f.label}</label>
+                        <input type={f.type||'text'} className="price-input" style={{width:f.width}}
+                          placeholder={f.placeholder} value={newEmployee[f.key]}
+                          onChange={e => setNewEmployee(p => ({...p, [f.key]: e.target.value}))} />
+                      </div>
+                    ))}
+                    <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                      <label style={{fontSize:'11px', color:'var(--gray)', letterSpacing:'0.5px', textTransform:'uppercase'}}>Reports To</label>
+                      <select className="status-select" style={{width:'160px'}} value={newEmployee.reportsTo}
+                        onChange={e => setNewEmployee(p => ({...p, reportsTo: e.target.value}))}>
+                        <option value="">— None (top level) —</option>
+                        {employees.map(e => <option key={e._id} value={e._id}>{e.name} ({e.role})</option>)}
+                      </select>
+                    </div>
+                    <button className="btn-save" style={{padding:'8px 20px', fontSize:'13px'}} onClick={addEmployee}
+                      disabled={!newEmployee.name.trim() || !newEmployee.role.trim() || !newEmployee.salary}>
+                      + Add Employee
+                    </button>
+                  </div>
+
+                  {/* Table */}
+                  <div className="admin-table-wrap">
+                    <table className="admin-table">
+                      <thead><tr><th>Name</th><th>Role</th><th>Phone</th><th>Monthly Salary</th><th>Reports To</th><th>Update Salary</th><th>Save</th><th>Delete</th></tr></thead>
+                      <tbody>
+                        {employees.length === 0 && (
+                          <tr><td colSpan={8} style={{color:'var(--gray)', textAlign:'center', padding:'32px'}}>No employees yet.</td></tr>
+                        )}
+                        {employees.map(e => (
+                          <tr key={e._id}>
+                            <td><strong>{e.name}</strong></td>
+                            <td>{e.role}</td>
+                            <td>{e.phone || '–'}</td>
+                            <td style={{color:'var(--gold)'}}>{e.salary?.toLocaleString()} EGP</td>
+                            <td>{e.reportsTo ? `${e.reportsTo.name}` : <span style={{color:'var(--gray)'}}>Top level</span>}</td>
+                            <td>
+                              <input type="number" className="price-input" placeholder={e.salary}
+                                value={editingSalary[e._id] ?? ''}
+                                onChange={ev => setEditingSalary(p => ({...p, [e._id]: ev.target.value}))} />
+                            </td>
+                            <td>
+                              <button className="btn-save" disabled={!editingSalary[e._id]}
+                                onClick={() => saveSalary(e._id, editingSalary[e._id])}>Save</button>
+                            </td>
+                            <td>
+                              <button className="btn-delete" onClick={() => deleteEmployee(e._id)}>Remove</button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Payroll ── */}
+              {staffView === 'payroll' && (
+                <div>
+                  {/* Month picker + loan form */}
+                  <div style={{display:'flex', gap:'16px', flexWrap:'wrap', marginBottom:'24px', alignItems:'flex-end'}}>
+                    <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                      <label style={{fontSize:'11px', color:'var(--gray)', letterSpacing:'0.5px', textTransform:'uppercase'}}>Month</label>
+                      <input type="month" className="price-input" style={{width:'160px'}} value={payrollMonth}
+                        onChange={e => setPayrollMonth(e.target.value)} />
+                    </div>
+                    <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                      <label style={{fontSize:'11px', color:'var(--gray)', letterSpacing:'0.5px', textTransform:'uppercase'}}>Employee</label>
+                      <select className="status-select" style={{width:'180px'}} value={newLoan.employeeId}
+                        onChange={e => setNewLoan(p => ({...p, employeeId: e.target.value}))}>
+                        <option value="">Select employee</option>
+                        {employees.map(e => <option key={e._id} value={e._id}>{e.name}</option>)}
+                      </select>
+                    </div>
+                    <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                      <label style={{fontSize:'11px', color:'var(--gray)', letterSpacing:'0.5px', textTransform:'uppercase'}}>Loan Amount (EGP)</label>
+                      <input type="number" className="price-input" style={{width:'130px'}} placeholder="0"
+                        value={newLoan.amount} onChange={e => setNewLoan(p => ({...p, amount: e.target.value}))} />
+                    </div>
+                    <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                      <label style={{fontSize:'11px', color:'var(--gray)', letterSpacing:'0.5px', textTransform:'uppercase'}}>Reason (optional)</label>
+                      <input className="price-input" style={{width:'160px'}} placeholder="e.g. Medical"
+                        value={newLoan.reason} onChange={e => setNewLoan(p => ({...p, reason: e.target.value}))} />
+                    </div>
+                    <button className="btn-delete" style={{padding:'8px 20px', fontSize:'13px'}} onClick={addLoan}
+                      disabled={!newLoan.employeeId || !newLoan.amount}>
+                      + Record Loan
+                    </button>
+                  </div>
+
+                  {/* Payroll table */}
+                  <div className="admin-table-wrap" style={{marginBottom:'24px'}}>
+                    <table className="admin-table">
+                      <thead>
+                        <tr><th>Employee</th><th>Role</th><th>Base Salary</th><th>Loans This Month</th><th style={{color:'#4caf50'}}>Net Pay</th></tr>
+                      </thead>
+                      <tbody>
+                        {employees.length === 0 && (
+                          <tr><td colSpan={5} style={{color:'var(--gray)', textAlign:'center', padding:'32px'}}>No employees yet.</td></tr>
+                        )}
+                        {employees.map(e => {
+                          const empLoans = loans.filter(l => String(l.employee?._id || l.employee) === String(e._id));
+                          const totalLoans = empLoans.reduce((s, l) => s + l.amount, 0);
+                          const net = e.salary - totalLoans;
+                          return (
+                            <tr key={e._id}>
+                              <td><strong>{e.name}</strong></td>
+                              <td>{e.role}</td>
+                              <td style={{color:'var(--gold)'}}>{e.salary?.toLocaleString()} EGP</td>
+                              <td style={{color:'#dc3545'}}>{totalLoans > 0 ? `– ${totalLoans.toLocaleString()} EGP` : '–'}</td>
+                              <td><strong style={{color: net < 0 ? '#dc3545' : '#4caf50', fontSize:'15px'}}>{net.toLocaleString()} EGP</strong></td>
+                            </tr>
+                          );
+                        })}
+                        {employees.length > 0 && (
+                          <tr style={{borderTop:'2px solid rgba(212,175,55,0.3)'}}>
+                            <td colSpan={2}><strong style={{color:'var(--white)'}}>Total</strong></td>
+                            <td style={{color:'var(--gold)'}}><strong>{employees.reduce((s,e)=>s+e.salary,0).toLocaleString()} EGP</strong></td>
+                            <td style={{color:'#dc3545'}}><strong>– {loans.reduce((s,l)=>s+l.amount,0).toLocaleString()} EGP</strong></td>
+                            <td><strong style={{color:'#4caf50', fontSize:'15px'}}>{(employees.reduce((s,e)=>s+e.salary,0) - loans.reduce((s,l)=>s+l.amount,0)).toLocaleString()} EGP</strong></td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Loans list */}
+                  {loans.length > 0 && (
+                    <div>
+                      <h4 style={{fontFamily:'var(--font-serif)', color:'var(--gold)', marginBottom:'12px', fontSize:'16px'}}>Loans — {payrollMonth}</h4>
+                      <div className="admin-table-wrap">
+                        <table className="admin-table">
+                          <thead><tr><th>Employee</th><th>Amount</th><th>Reason</th><th>Date</th><th>Remove</th></tr></thead>
+                          <tbody>
+                            {loans.map(l => (
+                              <tr key={l._id}>
+                                <td><strong>{l.employee?.name || '–'}</strong></td>
+                                <td style={{color:'#dc3545'}}>{l.amount?.toLocaleString()} EGP</td>
+                                <td>{l.reason || <span style={{color:'var(--gray)'}}>–</span>}</td>
+                                <td>{new Date(l.date).toLocaleDateString('en-GB')}</td>
+                                <td><button className="btn-delete" onClick={() => deleteLoan(l._id)}>Remove</button></td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── Org Chart ── */}
+              {staffView === 'chart' && (
+                <div style={{maxWidth:'700px'}}>
+                  {employees.length === 0
+                    ? <p style={{color:'var(--gray)', fontSize:'13px'}}>No employees yet.</p>
+                    : renderTree(buildTree(employees))
+                  }
                 </div>
               )}
             </div>
