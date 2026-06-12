@@ -16,6 +16,8 @@ const ROLES = [
 
 const ALL_SLOTS = ['11:00 AM','12:30 PM','2:00 PM','3:30 PM','5:00 PM','6:30 PM','8:00 PM'];
 
+const PROTECTED = new Set([3, 4, 7]); // Prices, Offer, Staff
+
 const downloadCSV = (rows, filename) => {
   if (!rows.length) return toast.error('No data to export');
   const headers = Object.keys(rows[0]);
@@ -54,6 +56,13 @@ export default function AdminDashboard() {
   const [newEmployee, setNewEmployee] = useState({ name: '', role: '', phone: '', salary: '', reportsTo: '' });
   const [newLoan, setNewLoan] = useState({ employeeId: '', amount: '', reason: '' });
   const [editingEmployee, setEditingEmployee] = useState(null);
+  const [tabPassword, setTabPassword] = useState(() => localStorage.getItem('hanz_tab_pass') || '0708');
+  const [unlockedTabs, setUnlockedTabs] = useState(new Set());
+  const [pendingTab, setPendingTab] = useState(null);
+  const [passInput, setPassInput] = useState('');
+  const [passError, setPassError] = useState(false);
+  const [newPass, setNewPass] = useState('');
+  const [changePassOpen, setChangePassOpen] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -312,9 +321,40 @@ export default function AdminDashboard() {
     u.email?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleTab = (i) => {
+    if (PROTECTED.has(i) && !unlockedTabs.has(i)) {
+      setPendingTab(i);
+      setPassInput('');
+      setPassError(false);
+    } else {
+      setTab(i);
+    }
+  };
+
+  const unlockTab = () => {
+    if (passInput === tabPassword) {
+      setUnlockedTabs(prev => new Set([...prev, pendingTab]));
+      setTab(pendingTab);
+      setPendingTab(null);
+    } else {
+      setPassError(true);
+    }
+  };
+
+  const changeTabPassword = () => {
+    if (!newPass.trim()) return toast.error('Enter a new password');
+    localStorage.setItem('hanz_tab_pass', newPass.trim());
+    setTabPassword(newPass.trim());
+    setUnlockedTabs(new Set()); // force re-auth with new password
+    setNewPass('');
+    setChangePassOpen(false);
+    toast.success('Password changed — re-enter it next time you open a protected tab');
+  };
+
   if (loading) return <div className="loading-screen"><div className="loader"></div></div>;
 
   return (
+    <>
     <div className="admin-page">
       <div className="page-header">
         <div className="container">
@@ -352,7 +392,9 @@ export default function AdminDashboard() {
           {/* Tabs */}
           <div className="admin-tabs">
             {TABS.map((t,i) => (
-              <button key={i} className={`admin-tab ${tab===i?'active':''}`} onClick={() => setTab(i)}>{t}</button>
+              <button key={i} className={`admin-tab ${tab===i?'active':''}`} onClick={() => handleTab(i)}>
+                {t}{PROTECTED.has(i) && !unlockedTabs.has(i) ? ' 🔒' : ''}
+              </button>
             ))}
           </div>
           <input
@@ -1110,8 +1152,75 @@ export default function AdminDashboard() {
             </div>
           )}
 
+          {/* Change password — shown at bottom of any unlocked protected tab */}
+          {PROTECTED.has(tab) && unlockedTabs.has(tab) && (
+            <div style={{marginTop:'40px', paddingTop:'24px', borderTop:'1px solid var(--dark-4)'}}>
+              {!changePassOpen ? (
+                <button className="btn-save" style={{fontSize:'12px', padding:'7px 18px'}}
+                  onClick={() => setChangePassOpen(true)}>
+                  🔑 Change Access Password
+                </button>
+              ) : (
+                <div className="card" style={{padding:'20px', maxWidth:'320px', display:'flex', flexDirection:'column', gap:'12px'}}>
+                  <h4 style={{color:'var(--white)', fontSize:'14px', margin:0}}>Change Access Password</h4>
+                  <input
+                    type="password"
+                    className="price-input"
+                    style={{width:'100%'}}
+                    placeholder="New password"
+                    value={newPass}
+                    onChange={e => setNewPass(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && changeTabPassword()}
+                    autoFocus
+                  />
+                  <div style={{display:'flex', gap:'8px'}}>
+                    <button className="btn-save" onClick={changeTabPassword}>Save</button>
+                    <button className="btn-delete" onClick={() => { setChangePassOpen(false); setNewPass(''); }}>Cancel</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
         </div>
       </div>
     </div>
+
+    {/* Password modal */}
+    {pendingTab !== null && (
+      <div style={{
+        position:'fixed', inset:0, zIndex:3000,
+        background:'rgba(0,0,0,0.75)',
+        display:'flex', alignItems:'center', justifyContent:'center'
+      }}>
+        <div className="card" style={{padding:'40px', minWidth:'300px', textAlign:'center'}}>
+          <div style={{fontSize:'36px', marginBottom:'16px'}}>🔒</div>
+          <h3 style={{fontFamily:'var(--font-serif)', color:'var(--white)', marginBottom:'6px', fontSize:'22px'}}>
+            {TABS[pendingTab]}
+          </h3>
+          <p style={{color:'var(--gray)', fontSize:'13px', marginBottom:'24px'}}>
+            Enter the access password to unlock this tab
+          </p>
+          <input
+            type="password"
+            className="admin-search"
+            style={{width:'100%', marginBottom:'8px', textAlign:'center', letterSpacing:'4px', fontSize:'18px'}}
+            placeholder="••••"
+            value={passInput}
+            onChange={e => { setPassInput(e.target.value); setPassError(false); }}
+            onKeyDown={e => e.key === 'Enter' && unlockTab()}
+            autoFocus
+          />
+          {passError && (
+            <p style={{color:'#dc3545', fontSize:'12px', marginBottom:'8px'}}>Incorrect password — try again</p>
+          )}
+          <div style={{display:'flex', gap:'10px', marginTop:'12px'}}>
+            <button className="btn-save" style={{flex:1, padding:'10px'}} onClick={unlockTab}>Unlock</button>
+            <button className="btn-delete" style={{flex:1, padding:'10px'}} onClick={() => setPendingTab(null)}>Cancel</button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
