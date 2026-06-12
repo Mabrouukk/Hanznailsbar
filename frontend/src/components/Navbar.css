@@ -62,14 +62,14 @@
   .hamburger { display: flex; order: -1; }
   .navbar-brand { order: 2; }
   .navbar-menu {
-    position: fixed; top: 0; right: -100%; bottom: 0;
+    position: fixed; top: 0; left: -100%; bottom: 0;
     width: 280px; background: var(--dark-2);
-    border-left: 1px solid rgba(212, 175, 55, 0.15);
+    border-right: 1px solid rgba(212, 175, 55, 0.15);
     flex-direction: column; align-items: flex-start;
     padding: 80px 24px 40px; gap: 4px;
-    transition: right 0.3s ease;
+    transition: left 0.3s ease;
   }
-  .navbar-menu.open { right: 0; }
+  .navbar-menu.open { left: 0; }
   .nav-link, .nav-logout { width: 100%; font-size: 13px; padding: 12px 0; border-bottom: 1px solid var(--dark-4); }
   .nav-cta { margin-top: 16px; }
 }
