@@ -20,9 +20,9 @@
   background: var(--gold); color: var(--black); font-weight: 500;
 }
 .admin-search {
-  margin-left: auto; padding: 10px 16px; background: var(--dark-3);
+  display: block; margin-bottom: 24px; padding: 10px 16px; background: var(--dark-3);
   border: 1px solid var(--dark-4); color: var(--white); border-radius: 8px;
-  font-family: var(--font-sans); font-size: 13px; outline: none; min-width: 200px;
+  font-family: var(--font-sans); font-size: 13px; outline: none; width: 280px;
 }
 .admin-search:focus { border-color: var(--gold); }
 
@@ -118,5 +118,5 @@
 }
 @media (max-width: 600px) {
   .stats-row { grid-template-columns: 1fr 1fr; }
-  .admin-search { min-width: 100%; margin-left: 0; margin-top: 8px; }
+  .admin-search { width: 100%; }
 }

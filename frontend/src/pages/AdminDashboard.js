@@ -166,13 +166,13 @@ export default function AdminDashboard() {
             {TABS.map((t,i) => (
               <button key={i} className={`admin-tab ${tab===i?'active':''}`} onClick={() => setTab(i)}>{t}</button>
             ))}
-            <input
-              className="admin-search"
-              placeholder="Search..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
           </div>
+          <input
+            className="admin-search"
+            placeholder="Search..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
 
           {/* Overview */}
           {tab === 0 && (
