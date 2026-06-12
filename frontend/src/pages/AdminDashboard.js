@@ -194,18 +194,20 @@ export default function AdminDashboard() {
                           {b.status}
                         </span>
                       </td>
-                      <td style={{display:'flex', gap:'8px', alignItems:'center'}}>
-                        <select
-                          className="status-select"
-                          value={b.status}
-                          onChange={e => updateStatus(b._id, e.target.value)}
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="confirmed">Confirmed</option>
-                          <option value="completed">Completed</option>
-                          <option value="cancelled">Cancelled</option>
-                        </select>
-                        <button className="btn-delete" onClick={() => deleteBooking(b._id)}>Delete</button>
+                      <td>
+                        <div style={{display:'flex', gap:'8px', alignItems:'center'}}>
+                          <select
+                            className="status-select"
+                            value={b.status}
+                            onChange={e => updateStatus(b._id, e.target.value)}
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
+                          <button className="btn-delete" onClick={() => deleteBooking(b._id)}>Delete</button>
+                        </div>
                       </td>
                     </tr>
                   ))}
