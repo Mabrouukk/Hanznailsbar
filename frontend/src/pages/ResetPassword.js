@@ -4,6 +4,8 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import './Auth.css';
 
+const API = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+
 export default function ResetPassword() {
   const { token } = useParams();
   const navigate = useNavigate();
@@ -22,7 +24,7 @@ export default function ResetPassword() {
     }
     setLoading(true);
     try {
-      await axios.post(`/api/auth/reset-password/${token}`, { password: form.password });
+      await axios.post(`${API}/auth/reset-password/${token}`, { password: form.password });
       toast.success('Password reset! You can now log in.');
       navigate('/login');
     } catch (err) {

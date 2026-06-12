@@ -4,6 +4,8 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import './Auth.css';
 
+const API = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -13,7 +15,7 @@ export default function ForgotPassword() {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post('/api/auth/forgot-password', { email });
+      await axios.post(`${API}/auth/forgot-password`, { email });
       setSent(true);
     } catch {
       toast.error('Something went wrong. Please try again.');
