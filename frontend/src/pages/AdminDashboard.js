@@ -5,7 +5,7 @@ import './AdminDashboard.css';
 
 const API = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
-const TABS = ['Overview', 'Bookings', 'Customers'];
+const TABS = ['Overview', 'Bookings', 'Customers', 'Prices'];
 
 export default function AdminDashboard() {
   const [tab, setTab] = useState(0);
@@ -14,16 +14,20 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [services, setServices] = useState([]);
+  const [editingPrice, setEditingPrice] = useState({});
 
   useEffect(() => {
     Promise.all([
       axios.get(`${API}/admin/stats`),
       axios.get(`${API}/admin/bookings`),
-      axios.get(`${API}/admin/users`)
-    ]).then(([s, b, u]) => {
+      axios.get(`${API}/admin/users`),
+      axios.get(`${API}/admin/services`)
+    ]).then(([s, b, u, sv]) => {
       setStats(s.data);
       setBookings(b.data);
       setUsers(u.data);
+      setServices(sv.data);
     }).catch(() => toast.error('Failed to load data'))
     .finally(() => setLoading(false));
   }, []);
@@ -34,6 +38,24 @@ export default function AdminDashboard() {
       setBookings(prev => prev.map(b => b._id === id ? {...b, status} : b));
       toast.success('Status updated');
     } catch { toast.error('Failed to update'); }
+  };
+
+  const deleteBooking = async (id) => {
+    if (!window.confirm('Delete this booking?')) return;
+    try {
+      await axios.delete(`${API}/admin/bookings/${id}`);
+      setBookings(prev => prev.filter(b => b._id !== id));
+      toast.success('Booking deleted');
+    } catch { toast.error('Failed to delete'); }
+  };
+
+  const savePrice = async (id, price) => {
+    try {
+      const res = await axios.put(`${API}/admin/services/${id}`, { price });
+      setServices(prev => prev.map(s => s._id === id ? res.data : s));
+      setEditingPrice(prev => { const n = {...prev}; delete n[id]; return n; });
+      toast.success('Price updated');
+    } catch { toast.error('Failed to update price'); }
   };
 
   const deleteUser = async (id) => {
@@ -144,6 +166,7 @@ export default function AdminDashboard() {
                     <th>Date</th>
                     <th>Time</th>
                     <th>Price</th>
+                    <th>Notes</th>
                     <th>Status</th>
                     <th>Actions</th>
                   </tr>
@@ -160,11 +183,18 @@ export default function AdminDashboard() {
                       <td>{b.time}</td>
                       <td>{b.finalPrice > 0 ? `${b.finalPrice} EGP` : '–'}</td>
                       <td>
+                        {b.notes ? (
+                          <span className="booking-notes" title={b.notes}>
+                            {b.notes.length > 40 ? b.notes.slice(0,40)+'…' : b.notes}
+                          </span>
+                        ) : <span style={{color:'var(--gray)'}}>–</span>}
+                      </td>
+                      <td>
                         <span className={`badge ${b.status==='confirmed'?'badge-green':b.status==='pending'?'badge-blue':b.status==='cancelled'?'badge-red':'badge-gold'}`}>
                           {b.status}
                         </span>
                       </td>
-                      <td>
+                      <td style={{display:'flex', gap:'8px', alignItems:'center'}}>
                         <select
                           className="status-select"
                           value={b.status}
@@ -175,6 +205,7 @@ export default function AdminDashboard() {
                           <option value="completed">Completed</option>
                           <option value="cancelled">Cancelled</option>
                         </select>
+                        <button className="btn-delete" onClick={() => deleteBooking(b._id)}>Delete</button>
                       </td>
                     </tr>
                   ))}
@@ -214,6 +245,50 @@ export default function AdminDashboard() {
               </table>
             </div>
           )}
+          {/* Prices */}
+          {tab === 3 && (
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Service</th>
+                    <th>Category</th>
+                    <th>Current Price</th>
+                    <th>New Price</th>
+                    <th>Save</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {services.map((s) => (
+                    <tr key={s._id}>
+                      <td><strong>{s.name}</strong></td>
+                      <td>{s.category}</td>
+                      <td style={{color:'var(--gold)'}}>{s.price} EGP</td>
+                      <td>
+                        <input
+                          type="number"
+                          className="price-input"
+                          placeholder={s.price}
+                          value={editingPrice[s._id] ?? ''}
+                          onChange={e => setEditingPrice(prev => ({...prev, [s._id]: e.target.value}))}
+                        />
+                      </td>
+                      <td>
+                        <button
+                          className="btn-save"
+                          disabled={!editingPrice[s._id]}
+                          onClick={() => savePrice(s._id, editingPrice[s._id])}
+                        >
+                          Save
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
         </div>
       </div>
     </div>

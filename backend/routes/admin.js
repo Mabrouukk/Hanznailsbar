@@ -91,4 +91,42 @@ router.delete('/users/:id', async (req, res) => {
   }
 });
 
+// @DELETE /api/admin/bookings/:id - Delete booking
+router.delete('/bookings/:id', async (req, res) => {
+  try {
+    await Booking.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Booking deleted' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @GET /api/admin/services - Get all services for editing
+router.get('/services', async (req, res) => {
+  try {
+    const Service = require('../models/Service');
+    const services = await Service.find().sort({ category: 1, name: 1 });
+    res.json(services);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @PUT /api/admin/services/:id - Update service price
+router.put('/services/:id', async (req, res) => {
+  try {
+    const Service = require('../models/Service');
+    const { price } = req.body;
+    const service = await Service.findByIdAndUpdate(
+      req.params.id,
+      { price: Number(price) },
+      { new: true }
+    );
+    if (!service) return res.status(404).json({ message: 'Service not found' });
+    res.json(service);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
