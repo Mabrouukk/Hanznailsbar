@@ -41,7 +41,10 @@ export default function Navbar() {
           <span className={menuOpen ? 'open' : ''}></span>
         </button>
 
+        {menuOpen && <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />}
+
         <div className={`navbar-menu ${menuOpen ? 'open' : ''}`}>
+          <button className="menu-close" onClick={() => setMenuOpen(false)} aria-label="Close menu">✕</button>
           <Link to="/" className="nav-link">Home</Link>
           <Link to="/services" className="nav-link">Services</Link>
           <Link to="/booking" className="nav-link">Book Now</Link>

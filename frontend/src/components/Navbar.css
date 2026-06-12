@@ -1,5 +1,5 @@
 .navbar {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  position: fixed; top: var(--ann-height, 0px); left: 0; right: 0; z-index: 1000;
   padding: 20px 0;
   background: transparent;
   transition: all 0.4s ease;
@@ -58,9 +58,30 @@
 .hamburger span.open:nth-child(2) { opacity: 0; }
 .hamburger span.open:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
 
+.menu-backdrop {
+  display: none;
+}
+.menu-close {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .hamburger { display: flex; order: -1; }
   .navbar-brand { order: 2; }
+  .menu-backdrop {
+    display: block;
+    position: fixed; inset: 0; z-index: 999;
+    background: rgba(0,0,0,0.5);
+  }
+  .menu-close {
+    display: flex; align-items: center; justify-content: center;
+    position: absolute; top: 20px; right: 20px;
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--dark-4); border: none; cursor: pointer;
+    color: var(--gray-light); font-size: 16px;
+    transition: background 0.2s;
+  }
+  .menu-close:hover { background: var(--gold); color: var(--black); }
   .navbar-menu {
     position: fixed; top: 0; left: -100%; bottom: 0;
     width: 280px; background: var(--dark-2);
