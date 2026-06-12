@@ -30,6 +30,7 @@ app.use('/api/bookings', require('./routes/bookings'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/services', require('./routes/services'));
 app.use('/api/discounts', require('./routes/discounts'));
+app.use('/api/settings', require('./routes/settings'));
 
 // Health check
 app.get('/', (req, res) => {

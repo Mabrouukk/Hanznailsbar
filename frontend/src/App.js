@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
+import AnnouncementBar from './components/AnnouncementBar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
 import Services from './pages/Services';
@@ -31,6 +32,7 @@ const AdminRoute = ({ children }) => {
 function AppRoutes() {
   return (
     <Router>
+      <AnnouncementBar />
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />

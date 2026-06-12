@@ -35,23 +35,7 @@ export default function Navbar() {
           </div>
         </Link>
 
-        {/* 20% Price Increase Badge */}
-        <div style={{
-          background: '#ffecb3',
-          color: '#b8860b',
-          fontWeight: 'bold',
-          borderRadius: '20px',
-          padding: '6px 18px',
-          marginLeft: '24px',
-          fontSize: '0.75rem',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
-          display: 'inline-block',
-          letterSpacing: '0.5px',
-        }}>
-         Get 15 % Off Now! 
-        </div>
-
-        <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
+<button className="hamburger" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
           <span className={menuOpen ? 'open' : ''}></span>
           <span className={menuOpen ? 'open' : ''}></span>
           <span className={menuOpen ? 'open' : ''}></span>

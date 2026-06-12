@@ -133,4 +133,30 @@ router.put('/services/:id', async (req, res) => {
   }
 });
 
+// @GET /api/admin/settings
+router.get('/settings', async (req, res) => {
+  try {
+    const { getSettings } = require('./settings');
+    res.json(await getSettings());
+  } catch {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @PUT /api/admin/settings
+router.put('/settings', async (req, res) => {
+  try {
+    const Settings = require('../models/Settings');
+    const { offerEnabled, offerPercentage } = req.body;
+    let s = await Settings.findOne();
+    if (!s) s = new Settings();
+    if (offerEnabled !== undefined) s.offerEnabled = offerEnabled;
+    if (offerPercentage !== undefined) s.offerPercentage = Number(offerPercentage);
+    await s.save();
+    res.json(s);
+  } catch {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

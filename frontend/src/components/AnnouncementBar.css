@@ -1,0 +1,21 @@
+.announcement-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1100;
+  background: linear-gradient(90deg, #b8860b, #d4af37, #b8860b);
+  color: #000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 10px 48px;
+  font-size: 13px; letter-spacing: 0.5px;
+  text-align: center;
+}
+
+.ann-text { flex: 1; text-align: center; }
+.ann-text strong { font-weight: 700; }
+
+.ann-close {
+  position: absolute; right: 16px;
+  background: none; border: none; cursor: pointer;
+  font-size: 14px; color: #000; opacity: 0.6;
+  line-height: 1; padding: 4px;
+  transition: opacity 0.2s;
+}
+.ann-close:hover { opacity: 1; }

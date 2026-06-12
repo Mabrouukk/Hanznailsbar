@@ -9,11 +9,15 @@ export default function Services() {
   const [services, setServices] = useState([]);
   const [openCategories, setOpenCategories] = useState({});
   const [loading, setLoading] = useState(true);
+  const [offer, setOffer] = useState(null);
 
   useEffect(() => {
-    axios.get(`${API}/services`).then(r => {
+    Promise.all([
+      axios.get(`${API}/services`),
+      axios.get(`${API}/settings`)
+    ]).then(([r, s]) => {
       setServices(r.data);
-      // Open first category by default
+      setOffer(s.data);
       if (r.data.length > 0) setOpenCategories({ 0: true });
       setLoading(false);
     }).catch(() => setLoading(false));
@@ -69,7 +73,16 @@ export default function Services() {
                             <span className="accordion-service-duration"> {item.duration}</span>
                           </div>
                           <div className="accordion-service-right">
-                            <span className="accordion-service-price">{item.price} EGP</span>
+                            {offer?.offerEnabled ? (
+                              <div className="price-offer-wrap">
+                                <span className="price-original">{item.price} EGP</span>
+                                <span className="price-discounted">
+                                  {Math.round(item.price * (1 - offer.offerPercentage / 100))} EGP
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="accordion-service-price">{item.price} EGP</span>
+                            )}
                             <Link to="/booking" className="btn-book-small">Book</Link>
                           </div>
                         </div>

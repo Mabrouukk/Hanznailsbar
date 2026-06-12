@@ -84,6 +84,17 @@
 .services-cta h2 { font-family: var(--font-serif); font-size: 32px; color: var(--white); margin-bottom: 12px; }
 .services-cta p { color: var(--gray); font-size: 15px; margin-bottom: 28px; }
 
+.price-offer-wrap {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
+}
+.price-original {
+  text-decoration: line-through; color: var(--gray);
+  font-size: 12px; letter-spacing: 0.5px;
+}
+.price-discounted {
+  color: var(--gold); font-weight: 600; font-size: 15px;
+}
+
 @media (max-width: 600px) {
   .accordion-header { padding: 16px 16px; }
   .accordion-title { font-size: 16px; gap: 8px; }

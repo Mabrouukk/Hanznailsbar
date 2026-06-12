@@ -5,7 +5,7 @@ import './AdminDashboard.css';
 
 const API = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
-const TABS = ['Overview', 'Bookings', 'Customers', 'Prices'];
+const TABS = ['Overview', 'Bookings', 'Customers', 'Prices', 'Offer'];
 
 export default function AdminDashboard() {
   const [tab, setTab] = useState(0);
@@ -16,18 +16,23 @@ export default function AdminDashboard() {
   const [search, setSearch] = useState('');
   const [services, setServices] = useState([]);
   const [editingPrice, setEditingPrice] = useState({});
+  const [offerSettings, setOfferSettings] = useState({ offerEnabled: false, offerPercentage: 15 });
+  const [offerInput, setOfferInput] = useState(15);
 
   useEffect(() => {
     Promise.all([
       axios.get(`${API}/admin/stats`),
       axios.get(`${API}/admin/bookings`),
       axios.get(`${API}/admin/users`),
-      axios.get(`${API}/admin/services`)
-    ]).then(([s, b, u, sv]) => {
+      axios.get(`${API}/admin/services`),
+      axios.get(`${API}/admin/settings`)
+    ]).then(([s, b, u, sv, st]) => {
       setStats(s.data);
       setBookings(b.data);
       setUsers(u.data);
       setServices(sv.data);
+      setOfferSettings(st.data);
+      setOfferInput(st.data.offerPercentage);
     }).catch(() => toast.error('Failed to load data'))
     .finally(() => setLoading(false));
   }, []);
@@ -47,6 +52,15 @@ export default function AdminDashboard() {
       setBookings(prev => prev.filter(b => b._id !== id));
       toast.success('Booking deleted');
     } catch { toast.error('Failed to delete'); }
+  };
+
+  const saveOffer = async (patch) => {
+    try {
+      const res = await axios.put(`${API}/admin/settings`, { ...offerSettings, ...patch });
+      setOfferSettings(res.data);
+      setOfferInput(res.data.offerPercentage);
+      toast.success('Offer updated');
+    } catch { toast.error('Failed to update offer'); }
   };
 
   const savePrice = async (id, price) => {
@@ -247,6 +261,61 @@ export default function AdminDashboard() {
               </table>
             </div>
           )}
+          {/* Offer */}
+          {tab === 4 && (
+            <div className="offer-panel card">
+              <h3 style={{fontFamily:'var(--font-serif)', fontSize:'24px', marginBottom:'8px', color:'var(--white)'}}>Announcement Bar Offer</h3>
+              <p style={{color:'var(--gray)', fontSize:'13px', marginBottom:'32px'}}>
+                When enabled, a gold banner appears at the top of the site and all service prices show the discounted amount.
+              </p>
+
+              <div className="offer-toggle-row">
+                <span style={{color:'var(--gray-light)', fontSize:'14px'}}>Offer Status</span>
+                <button
+                  className={`offer-toggle ${offerSettings.offerEnabled ? 'active' : ''}`}
+                  onClick={() => saveOffer({ offerEnabled: !offerSettings.offerEnabled })}
+                >
+                  {offerSettings.offerEnabled ? 'ON' : 'OFF'}
+                </button>
+              </div>
+
+              <div className="offer-percentage-row">
+                <span style={{color:'var(--gray-light)', fontSize:'14px'}}>Discount Percentage</span>
+                <div style={{display:'flex', gap:'12px', alignItems:'center'}}>
+                  <input
+                    type="number"
+                    className="price-input"
+                    min="1" max="99"
+                    value={offerInput}
+                    onChange={e => setOfferInput(e.target.value)}
+                    style={{width:'80px'}}
+                  />
+                  <span style={{color:'var(--gray)'}}>%</span>
+                  <button
+                    className="btn-save"
+                    onClick={() => saveOffer({ offerPercentage: offerInput })}
+                    disabled={Number(offerInput) === offerSettings.offerPercentage}
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+
+              {offerSettings.offerEnabled && (
+                <div className="offer-preview">
+                  <p style={{color:'var(--gray)', fontSize:'12px', marginBottom:'8px'}}>Preview — how it appears on site:</p>
+                  <div style={{
+                    background:'linear-gradient(90deg,#b8860b,#d4af37,#b8860b)',
+                    color:'#000', borderRadius:'8px', padding:'10px 24px',
+                    fontSize:'13px', textAlign:'center', fontWeight:'500'
+                  }}>
+                    🎉 Limited Time: Get <strong>{offerSettings.offerPercentage}% Off</strong> all services — Book now!
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Prices */}
           {tab === 3 && (
             <div className="admin-table-wrap">
