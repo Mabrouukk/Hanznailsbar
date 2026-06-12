@@ -25,6 +25,8 @@ export default function Navbar() {
 
 
   return (
+    <>
+    {menuOpen && <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />}
     <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
       <div className="navbar-inner">
         <Link to="/" className="navbar-brand">
@@ -35,13 +37,11 @@ export default function Navbar() {
           </div>
         </Link>
 
-<button className="hamburger" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
+        <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
           <span className={menuOpen ? 'open' : ''}></span>
           <span className={menuOpen ? 'open' : ''}></span>
           <span className={menuOpen ? 'open' : ''}></span>
         </button>
-
-        {menuOpen && <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />}
 
         <div className={`navbar-menu ${menuOpen ? 'open' : ''}`}>
           <button className="menu-close" onClick={() => setMenuOpen(false)} aria-label="Close menu">✕</button>
@@ -65,5 +65,6 @@ export default function Navbar() {
         </div>
       </div>
     </nav>
+    </>
   );
 }
