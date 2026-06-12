@@ -108,7 +108,7 @@ export default function Home() {
         <div className="salon-overlay"></div>
         <div className="salon-content reveal">
           <p className="salon-label">Where Beauty Happens</p>
-          <h2>Step Into Our World</h2>
+          <h2 style={{color:'var(--gold)'}}>Step Into Our World</h2>
           <div className="gold-line" style={{margin:'20px auto'}}></div>
           <p className="salon-desc">A space designed for you to relax, unwind, and leave feeling beautiful. Located in the heart of Nasr City, Cairo.</p>
           <Link to="/booking" className="btn btn-gold">Reserve Your Spot</Link>
