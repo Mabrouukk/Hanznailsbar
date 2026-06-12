@@ -88,7 +88,7 @@ router.post('/guest', async (req, res) => {
   }
 });
 
-// @GET /api/bookings/slots - Get booked slots for a date
+// @GET /api/bookings/slots - Get unavailable slots for a date (booked + admin-blocked)
 router.get('/slots', async (req, res) => {
   try {
     const { date } = req.query;
@@ -99,12 +99,17 @@ router.get('/slots', async (req, res) => {
     const end = new Date(date);
     end.setHours(23, 59, 59, 999);
 
-    const bookings = await Booking.find({
-      date: { $gte: start, $lte: end },
-      status: { $nin: ['cancelled'] }
-    }).select('time');
+    const ALL_SLOTS = ['11:00 AM','12:30 PM','2:00 PM','3:30 PM','5:00 PM','6:30 PM','8:00 PM'];
 
-    res.json(bookings.map(b => b.time));
+    const [bookings, blocked] = await Promise.all([
+      Booking.find({ date: { $gte: start, $lte: end }, status: { $nin: ['cancelled'] } }).select('time'),
+      require('../models/BlockedSlot').find({ date })
+    ]);
+
+    const bookedTimes = bookings.map(b => b.time);
+    const blockedTimes = blocked.flatMap(bs => bs.time ? [bs.time] : ALL_SLOTS);
+
+    res.json([...new Set([...bookedTimes, ...blockedTimes])]);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }

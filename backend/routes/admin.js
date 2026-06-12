@@ -183,4 +183,33 @@ router.put('/settings', async (req, res) => {
   }
 });
 
+// @GET /api/admin/blocked-slots
+router.get('/blocked-slots', async (_req, res) => {
+  try {
+    const BlockedSlot = require('../models/BlockedSlot');
+    const slots = await BlockedSlot.find().sort({ date: 1, time: 1 });
+    res.json(slots);
+  } catch { res.status(500).json({ message: 'Server error' }); }
+});
+
+// @POST /api/admin/blocked-slots
+router.post('/blocked-slots', async (req, res) => {
+  try {
+    const BlockedSlot = require('../models/BlockedSlot');
+    const { date, time, reason } = req.body;
+    if (!date) return res.status(400).json({ message: 'Date required' });
+    const slot = await BlockedSlot.create({ date, time: time || null, reason: reason || '' });
+    res.status(201).json(slot);
+  } catch { res.status(500).json({ message: 'Server error' }); }
+});
+
+// @DELETE /api/admin/blocked-slots/:id
+router.delete('/blocked-slots/:id', async (req, res) => {
+  try {
+    const BlockedSlot = require('../models/BlockedSlot');
+    await BlockedSlot.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Unblocked' });
+  } catch { res.status(500).json({ message: 'Server error' }); }
+});
+
 module.exports = router;

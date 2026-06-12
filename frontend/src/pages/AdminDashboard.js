@@ -5,7 +5,9 @@ import './AdminDashboard.css';
 
 const API = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
-const TABS = ['Overview', 'Bookings', 'Customers', 'Prices', 'Offer'];
+const TABS = ['Overview', 'Bookings', 'Customers', 'Prices', 'Offer', 'Schedule'];
+
+const ALL_SLOTS = ['11:00 AM','12:30 PM','2:00 PM','3:30 PM','5:00 PM','6:30 PM','8:00 PM'];
 
 const downloadCSV = (rows, filename) => {
   if (!rows.length) return toast.error('No data to export');
@@ -31,6 +33,8 @@ export default function AdminDashboard() {
   const [offerSettings, setOfferSettings] = useState({ offerEnabled: false, offerPercentage: 15 });
   const [offerInput, setOfferInput] = useState(15);
   const [newService, setNewService] = useState({ name: '', price: '', category: 'Nail Services' });
+  const [blockedSlots, setBlockedSlots] = useState([]);
+  const [blockForm, setBlockForm] = useState({ date: '', allDay: true, times: [], reason: '' });
 
   useEffect(() => {
     Promise.all([
@@ -38,14 +42,16 @@ export default function AdminDashboard() {
       axios.get(`${API}/admin/bookings`),
       axios.get(`${API}/admin/users`),
       axios.get(`${API}/admin/services`),
-      axios.get(`${API}/admin/settings`)
-    ]).then(([s, b, u, sv, st]) => {
+      axios.get(`${API}/admin/settings`),
+      axios.get(`${API}/admin/blocked-slots`)
+    ]).then(([s, b, u, sv, st, bs]) => {
       setStats(s.data);
       setBookings(b.data);
       setUsers(u.data);
       setServices(sv.data);
       setOfferSettings(st.data);
       setOfferInput(st.data.offerPercentage);
+      setBlockedSlots(bs.data);
     }).catch(() => toast.error('Failed to load data'))
     .finally(() => setLoading(false));
   }, []);
@@ -113,6 +119,32 @@ export default function AdminDashboard() {
       setUsers(prev => prev.filter(u => u._id !== id));
       toast.success('User deleted');
     } catch { toast.error('Failed to delete'); }
+  };
+
+  const blockSlots = async () => {
+    if (!blockForm.date) return toast.error('Select a date');
+    if (!blockForm.allDay && blockForm.times.length === 0) return toast.error('Select at least one time slot');
+    try {
+      if (blockForm.allDay) {
+        const res = await axios.post(`${API}/admin/blocked-slots`, { date: blockForm.date, time: null, reason: blockForm.reason });
+        setBlockedSlots(prev => [...prev, res.data].sort((a,b) => a.date.localeCompare(b.date)));
+      } else {
+        const created = await Promise.all(
+          blockForm.times.map(t => axios.post(`${API}/admin/blocked-slots`, { date: blockForm.date, time: t, reason: blockForm.reason }).then(r => r.data))
+        );
+        setBlockedSlots(prev => [...prev, ...created].sort((a,b) => a.date.localeCompare(b.date)));
+      }
+      setBlockForm({ date: '', allDay: true, times: [], reason: '' });
+      toast.success('Blocked successfully');
+    } catch { toast.error('Failed to block slot'); }
+  };
+
+  const unblockSlot = async (id) => {
+    try {
+      await axios.delete(`${API}/admin/blocked-slots/${id}`);
+      setBlockedSlots(prev => prev.filter(s => s._id !== id));
+      toast.success('Unblocked');
+    } catch { toast.error('Failed to unblock'); }
   };
 
   const filteredBookings = bookings.filter(b =>
@@ -473,6 +505,115 @@ export default function AdminDashboard() {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {/* Schedule */}
+          {tab === 5 && (
+            <div>
+              {/* Block form */}
+              <div className="card" style={{padding:'28px', marginBottom:'24px', maxWidth:'600px'}}>
+                <h3 style={{fontFamily:'var(--font-serif)', fontSize:'20px', color:'var(--white)', marginBottom:'20px'}}>Block a Date or Slot</h3>
+
+                <div style={{display:'flex', flexWrap:'wrap', gap:'16px', marginBottom:'16px'}}>
+                  <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                    <label style={{fontSize:'11px', color:'var(--gray)', letterSpacing:'0.5px', textTransform:'uppercase'}}>Date</label>
+                    <input
+                      type="date"
+                      className="price-input"
+                      style={{width:'160px'}}
+                      value={blockForm.date}
+                      onChange={e => setBlockForm(p => ({...p, date: e.target.value}))}
+                    />
+                  </div>
+                  <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                    <label style={{fontSize:'11px', color:'var(--gray)', letterSpacing:'0.5px', textTransform:'uppercase'}}>Reason (optional)</label>
+                    <input
+                      className="price-input"
+                      style={{width:'200px'}}
+                      placeholder="e.g. Holiday, Staff out"
+                      value={blockForm.reason}
+                      onChange={e => setBlockForm(p => ({...p, reason: e.target.value}))}
+                    />
+                  </div>
+                </div>
+
+                <div style={{display:'flex', gap:'12px', marginBottom:'16px'}}>
+                  <button
+                    className={`admin-tab ${blockForm.allDay ? 'active' : ''}`}
+                    style={{padding:'8px 18px', fontSize:'12px'}}
+                    onClick={() => setBlockForm(p => ({...p, allDay: true, times: []}))}
+                  >Full Day</button>
+                  <button
+                    className={`admin-tab ${!blockForm.allDay ? 'active' : ''}`}
+                    style={{padding:'8px 18px', fontSize:'12px'}}
+                    onClick={() => setBlockForm(p => ({...p, allDay: false}))}
+                  >Specific Slots</button>
+                </div>
+
+                {!blockForm.allDay && (
+                  <div style={{display:'flex', flexWrap:'wrap', gap:'8px', marginBottom:'16px'}}>
+                    {ALL_SLOTS.map(t => {
+                      const selected = blockForm.times.includes(t);
+                      return (
+                        <button
+                          key={t}
+                          onClick={() => setBlockForm(p => ({
+                            ...p,
+                            times: selected ? p.times.filter(x => x !== t) : [...p.times, t]
+                          }))}
+                          style={{
+                            padding:'7px 14px', borderRadius:'6px', fontSize:'12px', cursor:'pointer',
+                            fontFamily:'var(--font-sans)', transition:'all 0.2s',
+                            background: selected ? 'rgba(220,53,69,0.15)' : 'var(--dark-3)',
+                            border: selected ? '1px solid rgba(220,53,69,0.5)' : '1px solid var(--dark-4)',
+                            color: selected ? '#dc3545' : 'var(--gray-light)'
+                          }}
+                        >{t}</button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <button
+                  className="btn-delete"
+                  style={{padding:'9px 24px', fontSize:'13px'}}
+                  onClick={blockSlots}
+                  disabled={!blockForm.date || (!blockForm.allDay && blockForm.times.length === 0)}
+                >
+                  Block {blockForm.allDay ? 'Entire Day' : `${blockForm.times.length} Slot${blockForm.times.length !== 1 ? 's' : ''}`}
+                </button>
+              </div>
+
+              {/* Existing blocked slots */}
+              {blockedSlots.length > 0 ? (
+                <div className="admin-table-wrap">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Blocked Slot</th>
+                        <th>Reason</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {blockedSlots.map(s => (
+                        <tr key={s._id}>
+                          <td><strong>{new Date(s.date + 'T12:00:00').toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short', year:'numeric'})}</strong></td>
+                          <td>{s.time ? s.time : <span style={{color:'var(--gold)'}}>Full Day</span>}</td>
+                          <td>{s.reason || <span style={{color:'var(--gray)'}}>–</span>}</td>
+                          <td>
+                            <button className="btn-save" onClick={() => unblockSlot(s._id)}>Unblock</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p style={{color:'var(--gray)', fontSize:'13px'}}>No blocked slots yet.</p>
+              )}
             </div>
           )}
 
