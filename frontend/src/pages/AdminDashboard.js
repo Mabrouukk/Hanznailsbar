@@ -7,6 +7,13 @@ const API = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 const TABS = ['Overview', 'Bookings', 'Customers', 'Prices', 'Offer', 'Schedule', 'Broadcast', 'Staff'];
 
+const ROLES = [
+  'Owner', 'CEO', 'Branch Manager', 'Operations Manager',
+  'Head of Nail Technicians', 'Senior Nail Technician', 'Nail Technician',
+  'Junior Nail Technician', 'Nail Art Specialist',
+  'Receptionist', 'Cashier', 'Cleaner', 'Security',
+];
+
 const ALL_SLOTS = ['11:00 AM','12:30 PM','2:00 PM','3:30 PM','5:00 PM','6:30 PM','8:00 PM'];
 
 const downloadCSV = (rows, filename) => {
@@ -46,7 +53,7 @@ export default function AdminDashboard() {
   const [staffView, setStaffView] = useState('employees');
   const [newEmployee, setNewEmployee] = useState({ name: '', role: '', phone: '', salary: '', reportsTo: '' });
   const [newLoan, setNewLoan] = useState({ employeeId: '', amount: '', reason: '' });
-  const [editingSalary, setEditingSalary] = useState({});
+  const [editingEmployee, setEditingEmployee] = useState(null);
 
   useEffect(() => {
     Promise.all([
@@ -143,6 +150,21 @@ export default function AdminDashboard() {
     } catch { toast.error('Failed to delete'); }
   };
 
+  const updateEmployee = async () => {
+    if (!editingEmployee) return;
+    try {
+      const res = await axios.put(`${API}/admin/employees/${editingEmployee.id}`, {
+        role: editingEmployee.role,
+        phone: editingEmployee.phone,
+        salary: editingEmployee.salary,
+        reportsTo: editingEmployee.reportsTo || null,
+      });
+      setEmployees(prev => prev.map(e => e._id === editingEmployee.id ? res.data : e));
+      setEditingEmployee(null);
+      toast.success('Employee updated');
+    } catch { toast.error('Failed to update'); }
+  };
+
   const addEmployee = async () => {
     if (!newEmployee.name.trim() || !newEmployee.role.trim() || !newEmployee.salary) return toast.error('Name, role and salary are required');
     try {
@@ -162,14 +184,6 @@ export default function AdminDashboard() {
     } catch { toast.error('Failed to remove'); }
   };
 
-  const saveSalary = async (id, salary) => {
-    try {
-      const res = await axios.put(`${API}/admin/employees/${id}`, { salary });
-      setEmployees(prev => prev.map(e => e._id === id ? res.data : e));
-      setEditingSalary(prev => { const n = {...prev}; delete n[id]; return n; });
-      toast.success('Salary updated');
-    } catch { toast.error('Failed to update salary'); }
-  };
 
   const addLoan = async () => {
     if (!newLoan.employeeId || !newLoan.amount) return toast.error('Select employee and enter amount');
@@ -747,65 +761,123 @@ export default function AdminDashboard() {
                 <div>
                   {/* Add form */}
                   <div className="card" style={{padding:'20px', marginBottom:'24px', display:'flex', gap:'12px', flexWrap:'wrap', alignItems:'flex-end'}}>
-                    {[
-                      {label:'Name', key:'name', placeholder:'Full name', width:'160px'},
-                      {label:'Role', key:'role', placeholder:'e.g. Nail Technician', width:'160px'},
-                      {label:'Phone', key:'phone', placeholder:'+20...', width:'140px'},
-                      {label:'Salary (EGP)', key:'salary', placeholder:'0', width:'110px', type:'number'},
-                    ].map(f => (
-                      <div key={f.key} style={{display:'flex', flexDirection:'column', gap:'6px'}}>
-                        <label style={{fontSize:'11px', color:'var(--gray)', letterSpacing:'0.5px', textTransform:'uppercase'}}>{f.label}</label>
-                        <input type={f.type||'text'} className="price-input" style={{width:f.width}}
-                          placeholder={f.placeholder} value={newEmployee[f.key]}
-                          onChange={e => setNewEmployee(p => ({...p, [f.key]: e.target.value}))} />
-                      </div>
-                    ))}
+                    <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                      <label style={{fontSize:'11px', color:'var(--gray)', letterSpacing:'0.5px', textTransform:'uppercase'}}>Name</label>
+                      <input className="price-input" style={{width:'150px'}} placeholder="Full name"
+                        value={newEmployee.name} onChange={e => setNewEmployee(p => ({...p, name: e.target.value}))} />
+                    </div>
+                    <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                      <label style={{fontSize:'11px', color:'var(--gray)', letterSpacing:'0.5px', textTransform:'uppercase'}}>Role</label>
+                      <select className="status-select" style={{width:'200px'}} value={newEmployee.role}
+                        onChange={e => setNewEmployee(p => ({...p, role: e.target.value}))}>
+                        <option value="">Select role</option>
+                        {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                      </select>
+                    </div>
+                    <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                      <label style={{fontSize:'11px', color:'var(--gray)', letterSpacing:'0.5px', textTransform:'uppercase'}}>Phone</label>
+                      <input className="price-input" style={{width:'130px'}} placeholder="+20..."
+                        value={newEmployee.phone} onChange={e => setNewEmployee(p => ({...p, phone: e.target.value}))} />
+                    </div>
+                    <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                      <label style={{fontSize:'11px', color:'var(--gray)', letterSpacing:'0.5px', textTransform:'uppercase'}}>Salary (EGP)</label>
+                      <input type="number" className="price-input" style={{width:'110px'}} placeholder="0"
+                        value={newEmployee.salary} onChange={e => setNewEmployee(p => ({...p, salary: e.target.value}))} />
+                    </div>
                     <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
                       <label style={{fontSize:'11px', color:'var(--gray)', letterSpacing:'0.5px', textTransform:'uppercase'}}>Reports To</label>
-                      <select className="status-select" style={{width:'160px'}} value={newEmployee.reportsTo}
+                      <select className="status-select" style={{width:'170px'}} value={newEmployee.reportsTo}
                         onChange={e => setNewEmployee(p => ({...p, reportsTo: e.target.value}))}>
-                        <option value="">— None (top level) —</option>
+                        <option value="">— Top level —</option>
                         {employees.map(e => <option key={e._id} value={e._id}>{e.name} ({e.role})</option>)}
                       </select>
                     </div>
                     <button className="btn-save" style={{padding:'8px 20px', fontSize:'13px'}} onClick={addEmployee}
-                      disabled={!newEmployee.name.trim() || !newEmployee.role.trim() || !newEmployee.salary}>
+                      disabled={!newEmployee.name.trim() || !newEmployee.role || !newEmployee.salary}>
                       + Add Employee
                     </button>
                   </div>
 
                   {/* Table */}
-                  <div className="admin-table-wrap">
+                  <div className="admin-table-wrap" style={{marginBottom:'40px'}}>
                     <table className="admin-table">
-                      <thead><tr><th>Name</th><th>Role</th><th>Phone</th><th>Monthly Salary</th><th>Reports To</th><th>Update Salary</th><th>Save</th><th>Delete</th></tr></thead>
+                      <thead>
+                        <tr><th>Name</th><th>Role</th><th>Phone</th><th>Salary / mo</th><th>Reports To</th><th>Actions</th></tr>
+                      </thead>
                       <tbody>
                         {employees.length === 0 && (
-                          <tr><td colSpan={8} style={{color:'var(--gray)', textAlign:'center', padding:'32px'}}>No employees yet.</td></tr>
+                          <tr><td colSpan={6} style={{color:'var(--gray)', textAlign:'center', padding:'32px'}}>No employees yet.</td></tr>
                         )}
-                        {employees.map(e => (
-                          <tr key={e._id}>
-                            <td><strong>{e.name}</strong></td>
-                            <td>{e.role}</td>
-                            <td>{e.phone || '–'}</td>
-                            <td style={{color:'var(--gold)'}}>{e.salary?.toLocaleString()} EGP</td>
-                            <td>{e.reportsTo ? `${e.reportsTo.name}` : <span style={{color:'var(--gray)'}}>Top level</span>}</td>
-                            <td>
-                              <input type="number" className="price-input" placeholder={e.salary}
-                                value={editingSalary[e._id] ?? ''}
-                                onChange={ev => setEditingSalary(p => ({...p, [e._id]: ev.target.value}))} />
-                            </td>
-                            <td>
-                              <button className="btn-save" disabled={!editingSalary[e._id]}
-                                onClick={() => saveSalary(e._id, editingSalary[e._id])}>Save</button>
-                            </td>
-                            <td>
-                              <button className="btn-delete" onClick={() => deleteEmployee(e._id)}>Remove</button>
-                            </td>
-                          </tr>
-                        ))}
+                        {employees.map(e => {
+                          const isEditing = editingEmployee?.id === e._id;
+                          return (
+                            <tr key={e._id}>
+                              <td><strong>{e.name}</strong></td>
+                              {isEditing ? (
+                                <>
+                                  <td>
+                                    <select className="status-select" value={editingEmployee.role}
+                                      onChange={ev => setEditingEmployee(p => ({...p, role: ev.target.value}))}>
+                                      {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                                    </select>
+                                  </td>
+                                  <td>
+                                    <input className="price-input" style={{width:'120px'}} value={editingEmployee.phone}
+                                      onChange={ev => setEditingEmployee(p => ({...p, phone: ev.target.value}))} />
+                                  </td>
+                                  <td>
+                                    <input type="number" className="price-input" style={{width:'100px'}} value={editingEmployee.salary}
+                                      onChange={ev => setEditingEmployee(p => ({...p, salary: ev.target.value}))} />
+                                  </td>
+                                  <td>
+                                    <select className="status-select" style={{width:'150px'}} value={editingEmployee.reportsTo}
+                                      onChange={ev => setEditingEmployee(p => ({...p, reportsTo: ev.target.value}))}>
+                                      <option value="">— Top level —</option>
+                                      {employees.filter(x => x._id !== e._id).map(x => (
+                                        <option key={x._id} value={x._id}>{x.name}</option>
+                                      ))}
+                                    </select>
+                                  </td>
+                                  <td>
+                                    <div style={{display:'flex', gap:'6px'}}>
+                                      <button className="btn-save" onClick={updateEmployee}>Save</button>
+                                      <button className="btn-delete" onClick={() => setEditingEmployee(null)}>Cancel</button>
+                                    </div>
+                                  </td>
+                                </>
+                              ) : (
+                                <>
+                                  <td>{e.role}</td>
+                                  <td>{e.phone || '–'}</td>
+                                  <td style={{color:'var(--gold)'}}>{e.salary?.toLocaleString()} EGP</td>
+                                  <td>{e.reportsTo ? e.reportsTo.name : <span style={{color:'var(--gray)'}}>Top level</span>}</td>
+                                  <td>
+                                    <div style={{display:'flex', gap:'6px'}}>
+                                      <button className="btn-save" onClick={() => setEditingEmployee({
+                                        id: e._id, role: e.role, phone: e.phone || '',
+                                        salary: e.salary, reportsTo: e.reportsTo?._id || ''
+                                      })}>Edit</button>
+                                      <button className="btn-delete" onClick={() => deleteEmployee(e._id)}>Remove</button>
+                                    </div>
+                                  </td>
+                                </>
+                              )}
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
+
+                  {/* Org chart inline */}
+                  {employees.length > 0 && (
+                    <div>
+                      <h4 style={{fontFamily:'var(--font-serif)', color:'var(--gold)', marginBottom:'16px', fontSize:'18px'}}>Org Chart</h4>
+                      <div style={{maxWidth:'680px'}}>
+                        {renderTree(buildTree(employees))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
