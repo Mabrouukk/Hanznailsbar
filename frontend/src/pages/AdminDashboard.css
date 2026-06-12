@@ -68,6 +68,14 @@
 }
 .btn-delete:hover { background: rgba(220,53,69,0.2); }
 
+.btn-export {
+  background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.3);
+  color: var(--gold); padding: 8px 20px; border-radius: 8px; cursor: pointer;
+  font-size: 12px; font-family: var(--font-sans); letter-spacing: 0.5px;
+  transition: all 0.2s;
+}
+.btn-export:hover { background: rgba(212,175,55,0.2); }
+
 .offer-panel { padding: 40px; max-width: 600px; }
 .offer-toggle-row, .offer-percentage-row {
   display: flex; align-items: center; justify-content: space-between;

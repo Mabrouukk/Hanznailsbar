@@ -7,6 +7,18 @@ const API = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 const TABS = ['Overview', 'Bookings', 'Customers', 'Prices', 'Offer'];
 
+const downloadCSV = (rows, filename) => {
+  if (!rows.length) return toast.error('No data to export');
+  const headers = Object.keys(rows[0]);
+  const escape = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const csv = [headers.join(','), ...rows.map(r => headers.map(h => escape(r[h])).join(','))].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+};
+
 export default function AdminDashboard() {
   const [tab, setTab] = useState(0);
   const [stats, setStats] = useState({});
@@ -171,6 +183,24 @@ export default function AdminDashboard() {
 
           {/* Bookings */}
           {tab === 1 && (
+            <div>
+            <div style={{display:'flex', justifyContent:'flex-end', marginBottom:'16px'}}>
+              <button className="btn-export" onClick={() => downloadCSV(
+                filteredBookings.map(b => ({
+                  Name: b.userName,
+                  Phone: b.userPhone,
+                  Email: b.userEmail,
+                  Service: b.service,
+                  Date: new Date(b.date).toLocaleDateString('en-GB'),
+                  Time: b.time,
+                  'Price (EGP)': b.finalPrice || 0,
+                  'Discount %': b.discountPercent || 0,
+                  Notes: b.notes || '',
+                  Status: b.status,
+                })),
+                `bookings-${new Date().toISOString().slice(0,10)}.csv`
+              )}>⬇ Export Bookings CSV</button>
+            </div>
             <div className="admin-table-wrap">
               <table className="admin-table">
                 <thead>
@@ -228,10 +258,24 @@ export default function AdminDashboard() {
                 </tbody>
               </table>
             </div>
+            </div>
           )}
 
           {/* Customers */}
           {tab === 2 && (
+            <div>
+            <div style={{display:'flex', justifyContent:'flex-end', marginBottom:'16px'}}>
+              <button className="btn-export" onClick={() => downloadCSV(
+                filteredUsers.map(u => ({
+                  Name: u.name,
+                  Email: u.email,
+                  Phone: u.phone,
+                  Birthday: u.birthday ? new Date(u.birthday).toLocaleDateString('en-GB', {day:'numeric', month:'long'}) : '',
+                  'Registered Date': new Date(u.createdAt).toLocaleDateString('en-GB'),
+                })),
+                `customers-${new Date().toISOString().slice(0,10)}.csv`
+              )}>⬇ Export Customers CSV</button>
+            </div>
             <div className="admin-table-wrap">
               <table className="admin-table">
                 <thead>
@@ -259,6 +303,7 @@ export default function AdminDashboard() {
                   ))}
                 </tbody>
               </table>
+            </div>
             </div>
           )}
           {/* Offer */}
