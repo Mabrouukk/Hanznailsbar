@@ -183,6 +183,29 @@ router.put('/settings', async (req, res) => {
   }
 });
 
+// @POST /api/admin/email/broadcast
+router.post('/email/broadcast', async (req, res) => {
+  try {
+    const { subject, message } = req.body;
+    if (!subject || !message) return res.status(400).json({ message: 'Subject and message are required' });
+
+    const customers = await User.find({ role: 'customer' }).select('email');
+    if (!customers.length) return res.status(400).json({ message: 'No customers found' });
+
+    const { sendBroadcastEmail } = require('../utils/emailService');
+    const results = await Promise.allSettled(
+      customers.map(u => sendBroadcastEmail(u.email, subject, message))
+    );
+
+    const sent = results.filter(r => r.status === 'fulfilled').length;
+    const failed = results.filter(r => r.status === 'rejected').length;
+
+    res.json({ sent, failed, total: customers.length });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @GET /api/admin/blocked-slots
 router.get('/blocked-slots', async (_req, res) => {
   try {

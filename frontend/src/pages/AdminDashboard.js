@@ -5,7 +5,7 @@ import './AdminDashboard.css';
 
 const API = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
-const TABS = ['Overview', 'Bookings', 'Customers', 'Prices', 'Offer', 'Schedule'];
+const TABS = ['Overview', 'Bookings', 'Customers', 'Prices', 'Offer', 'Schedule', 'Broadcast'];
 
 const ALL_SLOTS = ['11:00 AM','12:30 PM','2:00 PM','3:30 PM','5:00 PM','6:30 PM','8:00 PM'];
 
@@ -37,6 +37,9 @@ export default function AdminDashboard() {
   const [blockForm, setBlockForm] = useState({ date: '', allDay: true, times: [], reason: '' });
   const [todayOnly, setTodayOnly] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
+  const [broadcast, setBroadcast] = useState({ subject: '', message: '' });
+  const [broadcastSending, setBroadcastSending] = useState(false);
+  const [broadcastResult, setBroadcastResult] = useState(null);
 
   useEffect(() => {
     Promise.all([
@@ -121,6 +124,20 @@ export default function AdminDashboard() {
       setUsers(prev => prev.filter(u => u._id !== id));
       toast.success('User deleted');
     } catch { toast.error('Failed to delete'); }
+  };
+
+  const sendBroadcast = async () => {
+    if (!broadcast.subject.trim() || !broadcast.message.trim()) return toast.error('Subject and message are required');
+    if (!window.confirm(`Send this email to all ${users.length} customers?`)) return;
+    setBroadcastSending(true);
+    setBroadcastResult(null);
+    try {
+      const { data } = await axios.post(`${API}/admin/email/broadcast`, broadcast);
+      setBroadcastResult(data);
+      setBroadcast({ subject: '', message: '' });
+      toast.success(`Sent to ${data.sent} customer${data.sent !== 1 ? 's' : ''}`);
+    } catch { toast.error('Failed to send broadcast'); }
+    finally { setBroadcastSending(false); }
   };
 
   const blockSlots = async () => {
@@ -546,6 +563,73 @@ export default function AdminDashboard() {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {/* Broadcast */}
+          {tab === 6 && (
+            <div style={{maxWidth:'640px'}}>
+              <div className="card" style={{padding:'28px', marginBottom:'20px'}}>
+                <h3 style={{fontFamily:'var(--font-serif)', fontSize:'20px', color:'var(--white)', marginBottom:'6px'}}>Send Email to All Customers</h3>
+                <p style={{color:'var(--gray)', fontSize:'13px', marginBottom:'24px'}}>
+                  {users.length} registered customer{users.length !== 1 ? 's' : ''} will receive this email.
+                </p>
+
+                <div style={{display:'flex', flexDirection:'column', gap:'16px'}}>
+                  <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                    <label style={{fontSize:'11px', color:'var(--gray)', letterSpacing:'0.5px', textTransform:'uppercase'}}>Subject</label>
+                    <input
+                      className="admin-search"
+                      style={{width:'100%', marginBottom:0}}
+                      placeholder="e.g. Special offer this week!"
+                      value={broadcast.subject}
+                      onChange={e => setBroadcast(p => ({...p, subject: e.target.value}))}
+                    />
+                  </div>
+                  <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                    <label style={{fontSize:'11px', color:'var(--gray)', letterSpacing:'0.5px', textTransform:'uppercase'}}>Message</label>
+                    <textarea
+                      style={{
+                        background:'var(--dark-3)', border:'1px solid var(--dark-4)', color:'var(--white)',
+                        padding:'12px 16px', borderRadius:'8px', fontFamily:'var(--font-sans)',
+                        fontSize:'13px', outline:'none', resize:'vertical', minHeight:'160px', lineHeight:'1.7'
+                      }}
+                      placeholder="Write your message here..."
+                      value={broadcast.message}
+                      onChange={e => setBroadcast(p => ({...p, message: e.target.value}))}
+                      onFocus={e => e.target.style.borderColor='var(--gold)'}
+                      onBlur={e => e.target.style.borderColor='var(--dark-4)'}
+                    />
+                  </div>
+                  <button
+                    className="btn-export"
+                    style={{alignSelf:'flex-start', padding:'10px 28px', fontSize:'13px'}}
+                    onClick={sendBroadcast}
+                    disabled={broadcastSending || !broadcast.subject.trim() || !broadcast.message.trim()}
+                  >
+                    {broadcastSending ? 'Sending...' : `Send to ${users.length} Customer${users.length !== 1 ? 's' : ''}`}
+                  </button>
+                </div>
+              </div>
+
+              {broadcastResult && (
+                <div className="card" style={{padding:'20px', display:'flex', gap:'24px'}}>
+                  <div style={{textAlign:'center'}}>
+                    <strong style={{display:'block', fontSize:'28px', color:'#4caf50'}}>{broadcastResult.sent}</strong>
+                    <span style={{fontSize:'12px', color:'var(--gray)', textTransform:'uppercase', letterSpacing:'0.5px'}}>Sent</span>
+                  </div>
+                  {broadcastResult.failed > 0 && (
+                    <div style={{textAlign:'center'}}>
+                      <strong style={{display:'block', fontSize:'28px', color:'#dc3545'}}>{broadcastResult.failed}</strong>
+                      <span style={{fontSize:'12px', color:'var(--gray)', textTransform:'uppercase', letterSpacing:'0.5px'}}>Failed</span>
+                    </div>
+                  )}
+                  <div style={{textAlign:'center'}}>
+                    <strong style={{display:'block', fontSize:'28px', color:'var(--gold)'}}>{broadcastResult.total}</strong>
+                    <span style={{fontSize:'12px', color:'var(--gray)', textTransform:'uppercase', letterSpacing:'0.5px'}}>Total</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

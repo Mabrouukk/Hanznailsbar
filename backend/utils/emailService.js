@@ -269,6 +269,26 @@ const sendPasswordResetEmail = async (user, resetUrl) => {
   }
 };
 
+const sendBroadcastEmail = async (to, subject, message) => {
+  return resend.emails.send({
+    from: FROM_SALON,
+    to,
+    subject,
+    html: `
+      <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; background: #1a1a1a; color: #fff; padding: 40px; border-radius: 12px;">
+        <h1 style="color: #d4af37; text-align: center; font-size: 28px; letter-spacing: 4px;">HÄNZ NAILS</h1>
+        <hr style="border-color: #d4af37; margin: 20px 0;">
+        <div style="color: #ccc; line-height: 1.8; font-size: 15px; white-space: pre-line;">${message}</div>
+        <hr style="border-color: #333; margin: 30px 0;">
+        <div style="text-align: center; margin: 20px 0;">
+          <a href="${process.env.CLIENT_URL}/booking" style="background: #d4af37; color: #000; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold;">Book Now</a>
+        </div>
+        <p style="color: #888; text-align: center; font-size: 13px; margin-top: 20px;">19 Ali Amer, Nasr City, Cairo — +20 10 2056 4047</p>
+      </div>
+    `
+  });
+};
+
 module.exports = {
   sendAdminNotification,
   sendWelcomeEmail,
@@ -277,5 +297,6 @@ module.exports = {
   sendBookingStatusEmail,
   sendGuestBookingConfirmation,
   sendAdminBookingAlert,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  sendBroadcastEmail
 };
