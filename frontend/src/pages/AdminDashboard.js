@@ -30,6 +30,7 @@ export default function AdminDashboard() {
   const [editingPrice, setEditingPrice] = useState({});
   const [offerSettings, setOfferSettings] = useState({ offerEnabled: false, offerPercentage: 15 });
   const [offerInput, setOfferInput] = useState(15);
+  const [newService, setNewService] = useState({ name: '', price: '', category: 'Nail Services' });
 
   useEffect(() => {
     Promise.all([
@@ -82,6 +83,27 @@ export default function AdminDashboard() {
       setEditingPrice(prev => { const n = {...prev}; delete n[id]; return n; });
       toast.success('Price updated');
     } catch { toast.error('Failed to update price'); }
+  };
+
+  const createService = async () => {
+    if (!newService.name.trim() || !newService.price || !newService.category.trim()) {
+      return toast.error('Fill in all fields');
+    }
+    try {
+      const res = await axios.post(`${API}/admin/services`, newService);
+      setServices(prev => [...prev, res.data]);
+      setNewService({ name: '', price: '', category: 'Nail Services' });
+      toast.success('Service added');
+    } catch { toast.error('Failed to add service'); }
+  };
+
+  const deleteService = async (id) => {
+    if (!window.confirm('Delete this service?')) return;
+    try {
+      await axios.delete(`${API}/admin/services/${id}`);
+      setServices(prev => prev.filter(s => s._id !== id));
+      toast.success('Service deleted');
+    } catch { toast.error('Failed to delete service'); }
   };
 
   const deleteUser = async (id) => {
@@ -363,45 +385,94 @@ export default function AdminDashboard() {
 
           {/* Prices */}
           {tab === 3 && (
-            <div className="admin-table-wrap">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Service</th>
-                    <th>Category</th>
-                    <th>Current Price</th>
-                    <th>New Price</th>
-                    <th>Save</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {services.map((s) => (
-                    <tr key={s._id}>
-                      <td><strong>{s.name}</strong></td>
-                      <td>{s.category}</td>
-                      <td style={{color:'var(--gold)'}}>{s.price} EGP</td>
-                      <td>
-                        <input
-                          type="number"
-                          className="price-input"
-                          placeholder={s.price}
-                          value={editingPrice[s._id] ?? ''}
-                          onChange={e => setEditingPrice(prev => ({...prev, [s._id]: e.target.value}))}
-                        />
-                      </td>
-                      <td>
-                        <button
-                          className="btn-save"
-                          disabled={!editingPrice[s._id]}
-                          onClick={() => savePrice(s._id, editingPrice[s._id])}
-                        >
-                          Save
-                        </button>
-                      </td>
+            <div>
+              {/* Add Service Form */}
+              <div className="add-service-form card" style={{marginBottom:'24px', padding:'20px', display:'flex', gap:'12px', flexWrap:'wrap', alignItems:'flex-end'}}>
+                <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                  <label style={{fontSize:'11px', color:'var(--gray)', letterSpacing:'0.5px', textTransform:'uppercase'}}>Service Name</label>
+                  <input
+                    className="price-input"
+                    style={{width:'200px'}}
+                    placeholder="e.g. Nail Art Design"
+                    value={newService.name}
+                    onChange={e => setNewService(p => ({...p, name: e.target.value}))}
+                  />
+                </div>
+                <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                  <label style={{fontSize:'11px', color:'var(--gray)', letterSpacing:'0.5px', textTransform:'uppercase'}}>Category</label>
+                  <input
+                    className="price-input"
+                    style={{width:'160px'}}
+                    placeholder="e.g. Nail Services"
+                    value={newService.category}
+                    onChange={e => setNewService(p => ({...p, category: e.target.value}))}
+                  />
+                </div>
+                <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                  <label style={{fontSize:'11px', color:'var(--gray)', letterSpacing:'0.5px', textTransform:'uppercase'}}>Price (EGP)</label>
+                  <input
+                    type="number"
+                    className="price-input"
+                    style={{width:'100px'}}
+                    placeholder="0"
+                    value={newService.price}
+                    onChange={e => setNewService(p => ({...p, price: e.target.value}))}
+                  />
+                </div>
+                <button
+                  className="btn-save"
+                  style={{padding:'8px 20px', fontSize:'13px'}}
+                  onClick={createService}
+                  disabled={!newService.name.trim() || !newService.price}
+                >
+                  + Add Service
+                </button>
+              </div>
+
+              <div className="admin-table-wrap">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Service</th>
+                      <th>Category</th>
+                      <th>Current Price</th>
+                      <th>New Price</th>
+                      <th>Save</th>
+                      <th>Delete</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {services.map((s) => (
+                      <tr key={s._id}>
+                        <td><strong>{s.name}</strong></td>
+                        <td>{s.category}</td>
+                        <td style={{color:'var(--gold)'}}>{s.price} EGP</td>
+                        <td>
+                          <input
+                            type="number"
+                            className="price-input"
+                            placeholder={s.price}
+                            value={editingPrice[s._id] ?? ''}
+                            onChange={e => setEditingPrice(prev => ({...prev, [s._id]: e.target.value}))}
+                          />
+                        </td>
+                        <td>
+                          <button
+                            className="btn-save"
+                            disabled={!editingPrice[s._id]}
+                            onClick={() => savePrice(s._id, editingPrice[s._id])}
+                          >
+                            Save
+                          </button>
+                        </td>
+                        <td>
+                          <button className="btn-delete" onClick={() => deleteService(s._id)}>Delete</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 

@@ -116,6 +116,19 @@ router.get('/services', async (req, res) => {
   }
 });
 
+// @POST /api/admin/services - Create a new service
+router.post('/services', async (req, res) => {
+  try {
+    const Service = require('../models/Service');
+    const { name, price, category } = req.body;
+    if (!name || !price || !category) return res.status(400).json({ message: 'Name, price, and category are required' });
+    const service = await Service.create({ name, price: Number(price), category });
+    res.status(201).json(service);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @PUT /api/admin/services/:id - Update service price
 router.put('/services/:id', async (req, res) => {
   try {
@@ -128,6 +141,17 @@ router.put('/services/:id', async (req, res) => {
     );
     if (!service) return res.status(404).json({ message: 'Service not found' });
     res.json(service);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @DELETE /api/admin/services/:id - Delete a service
+router.delete('/services/:id', async (req, res) => {
+  try {
+    const Service = require('../models/Service');
+    await Service.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Service deleted' });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
