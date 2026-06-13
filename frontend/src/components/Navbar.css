@@ -93,7 +93,7 @@
 }
 .menu-close:hover { background: var(--gold); color: var(--black); }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .hamburger { display: flex; }
   .navbar-menu { display: none; }
 

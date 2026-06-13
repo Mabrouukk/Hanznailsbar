@@ -31,6 +31,7 @@ export default function Booking() {
   const [discountLoading, setDiscountLoading] = useState(false);
   const [activeCodes, setActiveCodes] = useState([]);
   const [guestInfo, setGuestInfo] = useState({ name: '', email: '', phone: '' });
+  const [offer, setOffer] = useState({ enabled: false, percentage: 0 });
 
   useEffect(() => {
     if (user) setBookingMode('user');
@@ -38,6 +39,9 @@ export default function Booking() {
 
   useEffect(() => {
     axios.get(`${API}/services`).then(r => setServices(r.data));
+    axios.get(`${API}/settings`).then(r => {
+      if (r.data.offerEnabled) setOffer({ enabled: true, percentage: r.data.offerPercentage });
+    }).catch(() => {});
     if (user) {
       axios.get(`${API}/discounts/my`).then(r => setActiveCodes(r.data)).catch(() => {});
     }
@@ -67,7 +71,8 @@ export default function Booking() {
     }
   };
 
-  const totalPrice = selectedServices.reduce((sum, s) => sum + s.price, 0);
+  const offerPrice = (p) => offer.enabled ? Math.round(p * (1 - offer.percentage / 100)) : p;
+  const totalPrice = selectedServices.reduce((sum, s) => sum + offerPrice(s.price), 0);
   const finalPrice = discount ? totalPrice * (1 - discount.discount / 100) : totalPrice;
 
   const applyDiscount = async () => {
@@ -204,7 +209,7 @@ export default function Booking() {
                       <div style={{display:'flex', flexWrap:'wrap', gap:'8px', marginTop:'8px'}}>
                         {selectedServices.map((s,i) => (
                           <span key={i} className="selected-service-tag">
-                            {s.name} — {s.price} EGP
+                            {s.name} — {offerPrice(s.price)} EGP
                             <button onClick={() => toggleService(s, s.category)}>✕</button>
                           </span>
                         ))}
@@ -225,7 +230,19 @@ export default function Booking() {
                               <div className="service-select-name">{item.name}</div>
                               <div className="service-select-meta">
                                 <span>{item.duration}</span>
-                                <span className="service-select-price">{item.price} EGP</span>
+                                <span className="service-select-price">
+                                  {offer.enabled && (
+                                    <span style={{textDecoration:'line-through', color:'var(--gray)', marginRight:'6px', fontSize:'11px'}}>
+                                      {item.price}
+                                    </span>
+                                  )}
+                                  {offerPrice(item.price)} EGP
+                                  {offer.enabled && (
+                                    <span style={{color:'#e74c3c', fontSize:'10px', marginLeft:'4px', fontWeight:'700'}}>
+                                      -{offer.percentage}%
+                                    </span>
+                                  )}
+                                </span>
                               </div>
                               {isSelected && <div className="service-check">✓</div>}
                             </div>
@@ -364,7 +381,10 @@ export default function Booking() {
                   {selectedServices.map((s,i) => (
                     <div key={i} style={{display:'flex', justifyContent:'space-between', padding:'6px 0', borderBottom:'1px solid var(--dark-4)', fontSize:'13px'}}>
                       <span style={{color:'var(--gray-light)'}}>{s.name}</span>
-                      <span style={{color:'var(--gold)'}}>{s.price} EGP</span>
+                      <span style={{color:'var(--gold)'}}>
+                        {offer.enabled && <span style={{textDecoration:'line-through', color:'var(--gray)', marginRight:'5px', fontSize:'11px'}}>{s.price}</span>}
+                        {offerPrice(s.price)} EGP
+                      </span>
                     </div>
                   ))}
                   <div style={{display:'flex', justifyContent:'space-between', padding:'10px 0', fontWeight:'600'}}>
